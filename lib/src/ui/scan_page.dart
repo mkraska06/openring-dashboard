@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Hide BleService from universal_ble to avoid clash with our own BleService.
 import 'package:universal_ble/universal_ble.dart' hide BleService;
 
+import 'package:window_manager/window_manager.dart';
+
 import '../ble/ble_service.dart';
+import '../overlay/overlay_controller.dart';
 import '../protocol/accelerometer.dart';
 import '../protocol/battery.dart';
 import '../protocol/commands.dart';
@@ -514,18 +517,16 @@ class ScanPage extends ConsumerWidget {
     final notifier = ref.read(scanPageProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('OpenRing'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: _StatusIndicator(status: bleStatus),
-          ),
-        ],
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // -- custom title bar (because TitleBarStyle.hidden) ---------------
+          _CustomTitleBar(
+            bleStatus: bleStatus,
+            onOverlay: () =>
+                ref.read(overlayControllerProvider).activateOverlay(),
+          ),
+
           // -- error banner -------------------------------------------------
           if (pageState.error != null)
             MaterialBanner(
@@ -651,6 +652,111 @@ class ScanPage extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Sub-widgets
 // ---------------------------------------------------------------------------
+
+/// Custom title bar used because the native title bar is hidden (to allow
+/// seamless switching to overlay mode without runtime TitleBarStyle changes).
+class _CustomTitleBar extends StatelessWidget {
+  const _CustomTitleBar({
+    required this.bleStatus,
+    required this.onOverlay,
+  });
+
+  final BleConnectionStatus bleStatus;
+  final VoidCallback onOverlay;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: 40,
+      color: theme.colorScheme.primary,
+      child: Row(
+        children: [
+          // Draggable area (acts as title bar).
+          Expanded(
+            child: DragToMoveArea(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Text(
+                  'OpenRing',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Status indicator
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: _StatusIndicator(status: bleStatus),
+          ),
+          // Overlay button
+          if (bleStatus == BleConnectionStatus.connected)
+            IconButton(
+              icon: Icon(Icons.picture_in_picture_alt,
+                  color: theme.colorScheme.onPrimary, size: 18),
+              tooltip: 'Overlay aktivieren (Strg+Shift+O)',
+              onPressed: onOverlay,
+              splashRadius: 16,
+            ),
+          // Window control buttons
+          _WindowButton(
+            icon: Icons.minimize,
+            onPressed: () => windowManager.minimize(),
+            color: theme.colorScheme.onPrimary,
+          ),
+          _WindowButton(
+            icon: Icons.crop_square,
+            onPressed: () async {
+              if (await windowManager.isMaximized()) {
+                await windowManager.unmaximize();
+              } else {
+                await windowManager.maximize();
+              }
+            },
+            color: theme.colorScheme.onPrimary,
+          ),
+          _WindowButton(
+            icon: Icons.close,
+            onPressed: () => windowManager.close(),
+            color: theme.colorScheme.onPrimary,
+            hoverColor: Colors.red,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WindowButton extends StatelessWidget {
+  const _WindowButton({
+    required this.icon,
+    required this.onPressed,
+    required this.color,
+    this.hoverColor,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final Color color;
+  final Color? hoverColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 46,
+      height: 40,
+      child: IconButton(
+        icon: Icon(icon, color: color, size: 16),
+        onPressed: onPressed,
+        hoverColor: hoverColor?.withValues(alpha: 0.8),
+        splashRadius: 0.01,
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+}
 
 class _StatusIndicator extends StatelessWidget {
   const _StatusIndicator({required this.status});
