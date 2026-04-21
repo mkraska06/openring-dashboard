@@ -1,0 +1,63 @@
+@startuml OpenRing-Desktop-Anwendungsfalldiagramm
+' ===========================================================
+' Anwendungsfalldiagramm: OpenRing Desktop
+' Kompakte, zielorientierte Sicht auf die Anwendungsfaelle.
+' ===========================================================
+
+skinparam backgroundColor #FFFFFF
+skinparam usecase {
+    BackgroundColor #F5F9FF
+    BorderColor #2B4F81
+    ArrowColor #2B4F81
+}
+skinparam actor {
+    BackgroundColor #FFF3E0
+    BorderColor #8A5A00
+}
+skinparam packageStyle rectangle
+left to right direction
+
+actor "Nutzer" as User
+actor "Colmi Ring" as Ring
+
+rectangle "OpenRing Desktop" {
+
+    usecase "Ring verbinden"                as UC_Connect
+    usecase "Verbindung trennen"            as UC_Disconnect
+
+    usecase "Live-Vitaldaten einsehen"      as UC_Live
+    usecase "Vitaldatenverlauf auswerten"   as UC_History
+    usecase "Schlaf auswerten"              as UC_Sleep
+    usecase "Aktivitaet &\nSchrittziel verfolgen" as UC_Activity
+
+    usecase "Daten exportieren"             as UC_Export
+
+    usecase "Overlay nutzen"                as UC_Overlay
+
+
+    usecase "Ring-Funktionen nutzen\n(Finden, Neustart, Reset)" as UC_Device
+
+
+}
+
+' === Nutzer ===
+User --> UC_Connect
+User --> UC_Disconnect
+User --> UC_Live
+User --> UC_History
+User --> UC_Sleep
+User --> UC_Activity
+User --> UC_Export
+User --> UC_Overlay
+User --> UC_Device
+
+
+' === Colmi Ring (nur dort, wo BLE-Kommunikation zwingend ist) ===
+UC_Connect  --> Ring
+UC_Live     --> Ring
+UC_History  --> Ring
+UC_Sleep    --> Ring
+UC_Activity --> Ring
+UC_Device   --> Ring
+
+@enduml
