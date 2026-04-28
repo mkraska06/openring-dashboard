@@ -19,7 +19,7 @@ class OverlaySettings {
     this.isActive = false,
     this.isInteractive = false,
     this.position = const Offset(100, 100),
-    this.opacity = 0.1,
+    this.opacity = 1.0,
     this.showHr = true,
     this.showSpo2 = true,
     this.showBattery = true,
@@ -77,7 +77,7 @@ class OverlaySettingsNotifier extends StateNotifier<OverlaySettings> {
         prefs.getDouble(_keyPosX) ?? 100,
         prefs.getDouble(_keyPosY) ?? 100,
       ),
-      opacity: prefs.getDouble(_keyOpacity) ?? 0.1,
+      opacity: 1.0,
       showHr: prefs.getBool(_keyShowHr) ?? true,
       showSpo2: prefs.getBool(_keyShowSpo2) ?? true,
       showBattery: prefs.getBool(_keyShowBattery) ?? true,
@@ -118,7 +118,7 @@ class OverlaySettingsNotifier extends StateNotifier<OverlaySettings> {
   }
 
   void setOpacity(double opacity) {
-    state = state.copyWith(opacity: opacity.clamp(0.3, 1.0));
+    state = state.copyWith(opacity: opacity.clamp(0.05, 1.0));
     _saveSettings();
   }
 
@@ -155,5 +155,5 @@ class OverlaySettingsNotifier extends StateNotifier<OverlaySettings> {
 
 final overlaySettingsProvider =
     StateNotifierProvider<OverlaySettingsNotifier, OverlaySettings>((ref) {
-  return OverlaySettingsNotifier();
-});
+      return OverlaySettingsNotifier();
+    });

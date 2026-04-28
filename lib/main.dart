@@ -14,6 +14,7 @@ void main() async {
   const windowOptions = WindowOptions(
     size: Size(1280, 720),
     center: true,
+    backgroundColor: Colors.transparent,
     // Start with hidden title bar to avoid runtime changes that crash on
     // Windows.  The full-mode UI provides its own custom title bar via
     // DragToMoveArea.
@@ -25,11 +26,7 @@ void main() async {
     await windowManager.focus();
   });
 
-  runApp(
-    const ProviderScope(
-      child: OpenRingApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: OpenRingApp()));
 }
 
 class OpenRingApp extends ConsumerStatefulWidget {

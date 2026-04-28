@@ -58,9 +58,10 @@ class OverlayController {
     await windowManager.setPosition(_settings.position);
     await windowManager.setAlwaysOnTop(true);
     await windowManager.setSkipTaskbar(true);
-    await windowManager.setOpacity(_settings.opacity);
+    await _applyOverlayOpacity();
     await windowManager.setHasShadow(false);
     await windowManager.setIgnoreMouseEvents(true);
+    await _applyOverlayOpacity();
 
     await _initSystemTray();
     await _registerInteractiveHotkey();
@@ -109,12 +110,14 @@ class OverlayController {
     final nowInteractive = _settings.isInteractive;
 
     await windowManager.setIgnoreMouseEvents(!nowInteractive);
+    await _applyOverlayOpacity();
 
     if (!nowInteractive) {
       // Leaving interactive mode — save position and re-enforce size.
       final pos = await windowManager.getPosition();
       _notifier.updatePosition(pos);
       await _enforceOverlaySize();
+      await _applyOverlayOpacity();
     }
   }
 
@@ -125,13 +128,19 @@ class OverlayController {
     await windowManager.setSize(_overlaySize);
   }
 
+  Future<void> _applyOverlayOpacity() async {
+    await windowManager.setOpacity(_settings.opacity);
+  }
+
   Future<void> startDrag() async {
     await windowManager.startDragging();
+    await _applyOverlayOpacity();
   }
 
   Future<void> saveCurrentPosition() async {
     final pos = await windowManager.getPosition();
     _notifier.updatePosition(pos);
+    await _applyOverlayOpacity();
   }
 
   // -- System Tray ------------------------------------------------------------

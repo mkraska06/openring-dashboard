@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../ble/ble_service.dart';
 import '../protocol/commands.dart';
-import '../ui/scan_page.dart';
+import '../ui/scan_page_controller.dart';
 import 'overlay_controller.dart';
 import 'overlay_state.dart';
 
@@ -14,7 +14,8 @@ class OverlayWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(overlaySettingsProvider);
     final pageState = ref.watch(scanPageProvider);
-    final bleStatus = ref.watch(bleStatusProvider).valueOrNull ??
+    final bleStatus =
+        ref.watch(bleStatusProvider).valueOrNull ??
         BleConnectionStatus.disconnected;
     final controller = ref.read(overlayControllerProvider);
 
@@ -27,9 +28,11 @@ class OverlayWidget extends ConsumerWidget {
     final isConnected = bleStatus == BleConnectionStatus.connected;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: const Color(0x661E1E1E),
       body: GestureDetector(
-        onPanStart: settings.isInteractive ? (_) => controller.startDrag() : null,
+        onPanStart: settings.isInteractive
+            ? (_) => controller.startDrag()
+            : null,
         child: Container(
           decoration: BoxDecoration(
             border: settings.isInteractive
@@ -84,7 +87,8 @@ class OverlayWidget extends ConsumerWidget {
                       ? '${hrReading.value}'
                       : '--',
                   unit: 'BPM',
-                  valueColor: hrReading != null &&
+                  valueColor:
+                      hrReading != null &&
                           hrReading.hasValue &&
                           hrReading.value > settings.hrHighThreshold
                       ? Colors.red
@@ -100,7 +104,8 @@ class OverlayWidget extends ConsumerWidget {
                       ? '${spo2Reading.value}'
                       : '--',
                   unit: '%',
-                  valueColor: spo2Reading != null &&
+                  valueColor:
+                      spo2Reading != null &&
                           spo2Reading.hasValue &&
                           spo2Reading.value < settings.spo2LowThreshold
                       ? Colors.red
