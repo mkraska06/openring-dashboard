@@ -12,6 +12,8 @@ import '../protocol/hr_log.dart';
 import '../protocol/hr_settings.dart';
 import '../protocol/real_time.dart';
 import '../protocol/steps.dart';
+import '../history/history_page_controller.dart';
+import '../storage/storage_repository.dart';
 import 'scan_page_use_cases.dart';
 
 class ScanPageState {
@@ -87,8 +89,13 @@ class ScanPageState {
 }
 
 class ScanPageNotifier extends StateNotifier<ScanPageState> {
-  ScanPageNotifier(BleService service)
-    : _service = service,
+  ScanPageNotifier(
+    BleService service,
+    OpenRingStorage storage,
+    void Function() onHistoryDataChanged,
+  ) : _service = service,
+      _storage = storage,
+      _onHistoryDataChanged = onHistoryDataChanged,
       _useCases = ScanPageUseCases(service),
       super(const ScanPageState()) {
     _statusSub = _service.statusStream.listen((status) {
@@ -99,6 +106,8 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   }
 
   final BleService _service;
+  final OpenRingStorage _storage;
+  final void Function() _onHistoryDataChanged;
   final ScanPageUseCases _useCases;
   StreamSubscription<BleDevice>? _scanSub;
   StreamSubscription<Uint8List>? _packetSub;
@@ -107,6 +116,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   final Map<int, Timer> _rtRestarts = {};
   HrLogParser? _hrLogParser;
   StepParser? _stepParser;
+  String? _connectedDeviceId;
 
   static const _maxLogLines = 50;
 
@@ -139,6 +149,10 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       final updated = Map<String, BleDevice>.from(state.foundDevices)
         ..[device.deviceId] = device;
       state = state.copyWith(foundDevices: updated);
+      _persist(
+        () =>
+            _storage.upsertDevice(deviceId: device.deviceId, name: device.name),
+      );
     });
 
     try {
@@ -154,6 +168,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   }
 
   Future<void> connect(String deviceId) async {
+    final deviceName = state.foundDevices[deviceId]?.name;
     state = state.copyWith(
       clearBattery: true,
       realTimeReadings: const {},
@@ -177,6 +192,12 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       return;
     }
 
+    _connectedDeviceId = deviceId;
+    _persist(
+      () =>
+          _storage.setLastConnectedDevice(deviceId: deviceId, name: deviceName),
+    );
+
     _packetSub?.cancel();
     _packetSub = _useCases.packetStream.listen(_onPacket);
 
@@ -198,6 +219,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     _rtRestarts.clear();
     _hrLogParser = null;
     _stepParser = null;
+    _connectedDeviceId = null;
     _packetSub?.cancel();
     _packetSub = null;
     _useCases.onDebugLog = null;
@@ -384,7 +406,18 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     switch (packet[0]) {
       case Cmd.battery:
         final resp = parseBatteryResponse(packet);
-        if (resp != null) state = state.copyWith(battery: resp);
+        if (resp != null) {
+          state = state.copyWith(battery: resp);
+          final deviceId = _connectedDeviceId;
+          if (deviceId != null) {
+            _persist(
+              () => _storage.insertBatterySnapshot(
+                deviceId: deviceId,
+                battery: resp,
+              ),
+            );
+          }
+        }
 
       case Cmd.startRealTime:
         final resp = parseRealTimeResponse(packet);
@@ -395,6 +428,16 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
 
           if (resp.hasValue) {
             _onValidRealTimeReading(resp.type, resp.value);
+            final deviceId = _connectedDeviceId;
+            if (deviceId != null) {
+              _persist(
+                () => persistRealTimeReading(
+                  storage: _storage,
+                  deviceId: deviceId,
+                  reading: resp,
+                ),
+              );
+            }
           }
         }
 
@@ -403,6 +446,15 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         if (result != null) {
           _hrLogParser = null;
           state = state.copyWith(hrLog: result, hrLogLoading: false);
+          final deviceId = _connectedDeviceId;
+          if (deviceId != null) {
+            _persist(
+              () => _storage.insertHrLogEntries(
+                deviceId: deviceId,
+                entries: result.entries,
+              ),
+            );
+          }
         }
 
       case Cmd.heartRateLogSettings:
@@ -416,6 +468,15 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         if (result != null) {
           _stepParser = null;
           state = state.copyWith(steps: result, stepsLoading: false);
+          final deviceId = _connectedDeviceId;
+          if (deviceId != null) {
+            _persist(
+              () => _storage.insertStepEntries(
+                deviceId: deviceId,
+                entries: result,
+              ),
+            );
+          }
         }
 
       case cmdRawSensor:
@@ -427,6 +488,19 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   }
 
   void clearError() => state = state.copyWith(clearError: true);
+
+  void _persist(Future<void> Function() write) {
+    unawaited(
+      write()
+          .then((_) {
+            _onHistoryDataChanged();
+          })
+          .catchError((Object e, StackTrace _) {
+            _addLogLine('[DB] $e');
+            state = state.copyWith(error: 'DB speichern fehlgeschlagen: $e');
+          }),
+    );
+  }
 
   @override
   void dispose() {
@@ -446,6 +520,12 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
 
 final scanPageProvider = StateNotifierProvider<ScanPageNotifier, ScanPageState>(
   (ref) {
-    return ScanPageNotifier(ref.watch(bleServiceProvider));
+    return ScanPageNotifier(
+      ref.watch(bleServiceProvider),
+      ref.watch(openRingStorageProvider),
+      () {
+        ref.read(historyRefreshTickProvider.notifier).state++;
+      },
+    );
   },
 );

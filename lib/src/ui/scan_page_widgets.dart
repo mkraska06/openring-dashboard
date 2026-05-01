@@ -3,7 +3,6 @@ import 'package:universal_ble/universal_ble.dart' hide BleService;
 import 'package:window_manager/window_manager.dart';
 
 import '../ble/ble_service.dart';
-import '../playground/counter_page.dart';
 import '../protocol/accelerometer.dart';
 import '../protocol/battery.dart';
 import '../protocol/commands.dart';
