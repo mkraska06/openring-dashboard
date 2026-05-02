@@ -337,7 +337,7 @@ Future<void> persistRealTimeReading({
   );
 }
 
-const _liveBlockGap = Duration(seconds: 2);
+const _liveBlockGap = Duration(seconds: 6);
 const _liveBlockPause = Duration(seconds: 4);
 const _liveBlockFallbackDuration = Duration(seconds: 30);
 const _liveBlockPreviousWindow = Duration(minutes: 1);
