@@ -54,6 +54,7 @@ User --> UC_Device
 
 ' === Colmi Ring (nur dort, wo BLE-Kommunikation zwingend ist) ===
 UC_Connect  --> Ring
+UC_Disconnect --> Ring
 UC_Live     --> Ring
 UC_History  --> Ring
 UC_Sleep    --> Ring
