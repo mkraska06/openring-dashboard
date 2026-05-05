@@ -42,21 +42,21 @@ ChartWindow calculateChartWindow({
   required HistoryChartRange range,
   required DateTime day,
   required List<DateTime> times,
-  double? focusMinute,
+  double? centerMinute,
 }) {
   if (range == HistoryChartRange.day) {
     return const ChartWindow(minX: -6, maxX: 1446, bottomInterval: 360);
   }
 
   final durationMinutes = range.duration.inMinutes.toDouble();
-  final (minX, maxX) = focusMinute == null
+  final (minX, maxX) = centerMinute == null
       ? _latestAnchoredWindow(
           day: day,
           times: times,
           durationMinutes: durationMinutes,
         )
       : _focusedWindow(
-          focusMinute: focusMinute,
+          focusMinute: centerMinute,
           durationMinutes: durationMinutes,
         );
 
@@ -128,7 +128,9 @@ String formatChartTooltip({
   required int value,
   required String unit,
 }) {
-  return '${formatMinuteLabel((time.hour * 60 + time.minute).toDouble())} - $value $unit';
+  final minute =
+      time.hour * 60 + time.minute + time.second / Duration.secondsPerMinute;
+  return '${formatMinuteLabel(minute)} - $value $unit';
 }
 
 double _minutesSinceStartOfDay(DateTime time, DateTime day) {

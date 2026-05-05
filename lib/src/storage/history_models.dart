@@ -3,11 +3,13 @@ class VitalHistoryPoint {
     required this.measuredAt,
     required this.value,
     required this.source,
+    this.liveBlockId,
   });
 
   final DateTime measuredAt;
   final int value;
   final String source;
+  final int? liveBlockId;
 }
 
 class VitalHistorySeries {

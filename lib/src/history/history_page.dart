@@ -9,6 +9,8 @@ import 'history_chart_models.dart';
 import 'history_chart_widgets.dart';
 import 'history_page_controller.dart';
 
+const double _historyChartHeight = 220;
+
 class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key});
 
@@ -23,13 +25,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     vitalKindSpo2: HistoryChartRange.live10m,
     vitalKindHrv: HistoryChartRange.live10m,
   };
-  final Map<String, double?> _vitalFocusMinutes = {
+  final Map<String, double?> _vitalWindowCenterMinutes = {
     vitalKindHeartRate: null,
     vitalKindSpo2: null,
     vitalKindHrv: null,
   };
   HistoryChartRange _activityRange = HistoryChartRange.live10m;
-  double? _activityFocusMinute;
+  double? _activityWindowCenterMinute;
 
   @override
   void initState() {
@@ -102,19 +104,21 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             valueLabel: 'BPM',
             day: state.selectedDay,
             range: _vitalRanges[vitalKindHeartRate]!,
-            focusMinute: _vitalFocusMinutes[vitalKindHeartRate],
+            windowCenterMinute: _vitalWindowCenterMinutes[vitalKindHeartRate],
             onRangeChanged: (range) {
               setState(() {
                 _vitalRanges[vitalKindHeartRate] = range;
-                if (!_isFocusedRange(range)) {
-                  _vitalFocusMinutes[vitalKindHeartRate] = null;
-                }
               });
             },
             onFocusMinute: (minute) {
               setState(() {
                 _vitalRanges[vitalKindHeartRate] = HistoryChartRange.focus1m;
-                _vitalFocusMinutes[vitalKindHeartRate] = minute;
+                _vitalWindowCenterMinutes[vitalKindHeartRate] = minute;
+              });
+            },
+            onWindowCenterChanged: (minute) {
+              setState(() {
+                _vitalWindowCenterMinutes[vitalKindHeartRate] = minute;
               });
             },
           ),
@@ -125,19 +129,21 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             valueLabel: '%',
             day: state.selectedDay,
             range: _vitalRanges[vitalKindSpo2]!,
-            focusMinute: _vitalFocusMinutes[vitalKindSpo2],
+            windowCenterMinute: _vitalWindowCenterMinutes[vitalKindSpo2],
             onRangeChanged: (range) {
               setState(() {
                 _vitalRanges[vitalKindSpo2] = range;
-                if (!_isFocusedRange(range)) {
-                  _vitalFocusMinutes[vitalKindSpo2] = null;
-                }
               });
             },
             onFocusMinute: (minute) {
               setState(() {
                 _vitalRanges[vitalKindSpo2] = HistoryChartRange.focus1m;
-                _vitalFocusMinutes[vitalKindSpo2] = minute;
+                _vitalWindowCenterMinutes[vitalKindSpo2] = minute;
+              });
+            },
+            onWindowCenterChanged: (minute) {
+              setState(() {
+                _vitalWindowCenterMinutes[vitalKindSpo2] = minute;
               });
             },
           ),
@@ -148,19 +154,21 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             valueLabel: 'ms',
             day: state.selectedDay,
             range: _vitalRanges[vitalKindHrv]!,
-            focusMinute: _vitalFocusMinutes[vitalKindHrv],
+            windowCenterMinute: _vitalWindowCenterMinutes[vitalKindHrv],
             onRangeChanged: (range) {
               setState(() {
                 _vitalRanges[vitalKindHrv] = range;
-                if (!_isFocusedRange(range)) {
-                  _vitalFocusMinutes[vitalKindHrv] = null;
-                }
               });
             },
             onFocusMinute: (minute) {
               setState(() {
                 _vitalRanges[vitalKindHrv] = HistoryChartRange.focus1m;
-                _vitalFocusMinutes[vitalKindHrv] = minute;
+                _vitalWindowCenterMinutes[vitalKindHrv] = minute;
+              });
+            },
+            onWindowCenterChanged: (minute) {
+              setState(() {
+                _vitalWindowCenterMinutes[vitalKindHrv] = minute;
               });
             },
           ),
@@ -168,19 +176,21 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             activity: historyDay.activity,
             day: state.selectedDay,
             range: _activityRange,
-            focusMinute: _activityFocusMinute,
+            windowCenterMinute: _activityWindowCenterMinute,
             onRangeChanged: (range) {
               setState(() {
                 _activityRange = range;
-                if (!_isFocusedRange(range)) {
-                  _activityFocusMinute = null;
-                }
               });
             },
             onFocusMinute: (minute) {
               setState(() {
                 _activityRange = HistoryChartRange.focus1m;
-                _activityFocusMinute = minute;
+                _activityWindowCenterMinute = minute;
+              });
+            },
+            onWindowCenterChanged: (minute) {
+              setState(() {
+                _activityWindowCenterMinute = minute;
               });
             },
           ),
@@ -267,9 +277,10 @@ class _VitalHistoryCard extends StatelessWidget {
     required this.valueLabel,
     required this.day,
     required this.range,
-    required this.focusMinute,
+    required this.windowCenterMinute,
     required this.onRangeChanged,
     required this.onFocusMinute,
+    required this.onWindowCenterChanged,
   });
 
   final String title;
@@ -278,9 +289,10 @@ class _VitalHistoryCard extends StatelessWidget {
   final String valueLabel;
   final DateTime day;
   final HistoryChartRange range;
-  final double? focusMinute;
+  final double? windowCenterMinute;
   final ValueChanged<HistoryChartRange> onRangeChanged;
   final ValueChanged<double> onFocusMinute;
+  final ValueChanged<double> onWindowCenterChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -315,15 +327,16 @@ class _VitalHistoryCard extends StatelessWidget {
               const _EmptyInline(message: 'Keine Daten fuer diesen Tag.')
             else ...[
               SizedBox(
-                height: 160,
+                height: _historyChartHeight,
                 child: VitalLineChart(
                   points: points,
                   color: accent,
                   day: day,
                   unit: valueLabel,
                   range: range,
-                  focusMinute: focusMinute,
+                  windowCenterMinute: windowCenterMinute,
                   onFocusMinute: onFocusMinute,
+                  onWindowCenterChanged: onWindowCenterChanged,
                 ),
               ),
               const SizedBox(height: 10),
@@ -363,17 +376,19 @@ class _ActivityHistoryCard extends StatelessWidget {
     required this.activity,
     required this.day,
     required this.range,
-    required this.focusMinute,
+    required this.windowCenterMinute,
     required this.onRangeChanged,
     required this.onFocusMinute,
+    required this.onWindowCenterChanged,
   });
 
   final ActivityDaySummary activity;
   final DateTime day;
   final HistoryChartRange range;
-  final double? focusMinute;
+  final double? windowCenterMinute;
   final ValueChanged<HistoryChartRange> onRangeChanged;
   final ValueChanged<double> onFocusMinute;
+  final ValueChanged<double> onWindowCenterChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -406,13 +421,14 @@ class _ActivityHistoryCard extends StatelessWidget {
               const _EmptyInline(message: 'Keine Schritte fuer diesen Tag.')
             else ...[
               SizedBox(
-                height: 160,
+                height: _historyChartHeight,
                 child: ActivityBarChart(
                   points: activity.points,
                   day: day,
                   range: range,
-                  focusMinute: focusMinute,
+                  windowCenterMinute: windowCenterMinute,
                   onFocusMinute: onFocusMinute,
+                  onWindowCenterChanged: onWindowCenterChanged,
                 ),
               ),
               const SizedBox(height: 10),
@@ -561,9 +577,4 @@ String _formatDay(DateTime day) {
 String _formatTime(DateTime time) {
   return '${time.hour.toString().padLeft(2, '0')}:'
       '${time.minute.toString().padLeft(2, '0')}';
-}
-
-bool _isFocusedRange(HistoryChartRange range) {
-  return range == HistoryChartRange.focus1m ||
-      range == HistoryChartRange.focus5m;
 }

@@ -279,6 +279,48 @@ void main() {
   );
 
   test(
+    'history day keeps adjacent live block identity for chart aggregation',
+    () async {
+      await storage.setLastConnectedDevice(deviceId: 'ring-1');
+      final firstRawStart = DateTime.utc(2026, 4, 1, 12);
+      final secondRawStart = DateTime.utc(2026, 4, 1, 12, 0, 20);
+
+      for (var i = 0; i < 6; i++) {
+        await storage.insertVitalSample(
+          deviceId: 'ring-1',
+          kind: vitalKindHeartRate,
+          value: 70 + i,
+          unit: 'BPM',
+          measuredAt: firstRawStart.add(Duration(seconds: i)),
+          source: sampleSourceLive,
+        );
+        await storage.insertVitalSample(
+          deviceId: 'ring-1',
+          kind: vitalKindHeartRate,
+          value: 80 + i,
+          unit: 'BPM',
+          measuredAt: secondRawStart.add(Duration(seconds: i)),
+          source: sampleSourceLive,
+        );
+      }
+
+      final history = await storage.loadHistoryDay(day: DateTime(2026, 4, 1));
+      final hr = history!.series(vitalKindHeartRate)!;
+      final firstBlockIds = hr.points
+          .where((p) => p.value < 80)
+          .map((p) => p.liveBlockId)
+          .toSet();
+      final secondBlockIds = hr.points
+          .where((p) => p.value >= 80)
+          .map((p) => p.liveBlockId)
+          .toSet();
+
+      expect(firstBlockIds, {0});
+      expect(secondBlockIds, {1});
+    },
+  );
+
+  test(
     'history day falls back to thirty seconds when previous live block is older than one minute',
     () async {
       await storage.setLastConnectedDevice(deviceId: 'ring-1');

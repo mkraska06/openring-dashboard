@@ -355,7 +355,9 @@ List<VitalHistoryPoint> _correctLiveHistoryTimes(
   final correctedLivePoints = <VitalHistoryPoint>[];
   DateTime? previousBlockEnd;
 
-  for (final block in _liveMeasurementBlocks(livePoints)) {
+  final blocks = _liveMeasurementBlocks(livePoints);
+  for (var blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+    final block = blocks[blockIndex];
     final rawBlockEnd = block.first.measuredAt;
     var blockEnd = rawBlockEnd;
     DateTime blockStart;
@@ -371,7 +373,12 @@ List<VitalHistoryPoint> _correctLiveHistoryTimes(
     }
 
     correctedLivePoints.addAll(
-      _spreadHistoryBlock(block, start: blockStart, end: blockEnd),
+      _spreadHistoryBlock(
+        block,
+        start: blockStart,
+        end: blockEnd,
+        liveBlockId: blockIndex,
+      ),
     );
     previousBlockEnd = blockEnd;
   }
@@ -409,6 +416,7 @@ List<VitalHistoryPoint> _spreadHistoryBlock(
   List<VitalHistoryPoint> block, {
   required DateTime start,
   required DateTime end,
+  required int liveBlockId,
 }) {
   if (block.length == 1) {
     return [
@@ -416,6 +424,7 @@ List<VitalHistoryPoint> _spreadHistoryBlock(
         measuredAt: end,
         value: block.single.value,
         source: block.single.source,
+        liveBlockId: liveBlockId,
       ),
     ];
   }
@@ -429,6 +438,7 @@ List<VitalHistoryPoint> _spreadHistoryBlock(
         measuredAt: start.add(Duration(microseconds: (step * i).round())),
         value: block[i].value,
         source: block[i].source,
+        liveBlockId: liveBlockId,
       ),
   ];
 }

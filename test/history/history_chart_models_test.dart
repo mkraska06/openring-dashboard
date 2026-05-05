@@ -19,7 +19,7 @@ void main() {
       range: HistoryChartRange.focus5m,
       day: DateTime(2026, 4, 1),
       times: [DateTime(2026, 4, 1, 12, 45)],
-      focusMinute: 765,
+      centerMinute: 765,
     );
 
     expect(window.minX, 762.5);
@@ -32,7 +32,7 @@ void main() {
       range: HistoryChartRange.focus1m,
       day: DateTime(2026, 4, 1),
       times: [DateTime(2026, 4, 1, 12, 45, 30)],
-      focusMinute: 765.5,
+      centerMinute: 765.5,
     );
 
     expect(window.minX, 765);
@@ -50,6 +50,19 @@ void main() {
     expect(window.minX, 735.75);
     expect(window.maxX, 765.75);
     expect(window.bottomInterval, 10);
+  });
+
+  test('10m chart window can be manually centered for panning', () {
+    final window = calculateChartWindow(
+      range: HistoryChartRange.live10m,
+      day: DateTime(2026, 4, 1),
+      times: [DateTime(2026, 4, 1, 12, 45)],
+      centerMinute: 600,
+    );
+
+    expect(window.minX, 595);
+    expect(window.maxX, 605);
+    expect(window.bottomInterval, 2);
   });
 
   test('2h chart window follows the latest point', () {
@@ -100,11 +113,11 @@ void main() {
     );
     expect(
       formatChartTooltip(
-        time: DateTime(2026, 4, 1, 12, 45),
+        time: DateTime(2026, 4, 1, 12, 45, 30),
         value: 72,
         unit: 'BPM',
       ),
-      '12:45 - 72 BPM',
+      '12:45:30 - 72 BPM',
     );
   });
 }
