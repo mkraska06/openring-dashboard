@@ -150,12 +150,18 @@ class _DashboardView extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 16),
               children: [
                 BatteryCard(battery: pageState.battery),
+                DailyMeasurementButton(
+                  isRunning: pageState.dailyMeasurementRunning,
+                  onToggle: notifier.toggleDailyMeasurement,
+                ),
                 for (final type in ReadingType.supported)
                   RealTimeCard(
                     readingType: type,
                     reading: pageState.realTimeReadings[type],
                     isRunning: pageState.runningMeasurements.contains(type),
-                    onToggle: () => notifier.toggleRealTime(type),
+                    onToggle: pageState.dailyMeasurementRunning
+                        ? null
+                        : () => notifier.toggleRealTime(type),
                   ),
                 AccelerometerCard(
                   reading: pageState.lastAccel,

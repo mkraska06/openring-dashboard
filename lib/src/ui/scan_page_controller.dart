@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:universal_ble/universal_ble.dart' hide BleService;
 
 import '../ble/ble_service.dart';
+import '../measurements/daily_measurement_cycle.dart';
 import '../protocol/accelerometer.dart';
 import '../protocol/battery.dart';
 import '../protocol/commands.dart';
@@ -21,6 +22,7 @@ class ScanPageState {
   final BatteryResponse? battery;
   final Map<int, RealTimeReading> realTimeReadings;
   final Set<int> runningMeasurements;
+  final bool dailyMeasurementRunning;
   final HrLogResult? hrLog;
   final bool hrLogLoading;
   final List<StepEntry>? steps;
@@ -36,6 +38,7 @@ class ScanPageState {
     this.battery,
     this.realTimeReadings = const {},
     this.runningMeasurements = const {},
+    this.dailyMeasurementRunning = false,
     this.hrLog,
     this.hrLogLoading = false,
     this.steps,
@@ -53,6 +56,7 @@ class ScanPageState {
     bool clearBattery = false,
     Map<int, RealTimeReading>? realTimeReadings,
     Set<int>? runningMeasurements,
+    bool? dailyMeasurementRunning,
     HrLogResult? hrLog,
     bool clearHrLog = false,
     bool? hrLogLoading,
@@ -73,6 +77,8 @@ class ScanPageState {
       battery: clearBattery ? null : (battery ?? this.battery),
       realTimeReadings: realTimeReadings ?? this.realTimeReadings,
       runningMeasurements: runningMeasurements ?? this.runningMeasurements,
+      dailyMeasurementRunning:
+          dailyMeasurementRunning ?? this.dailyMeasurementRunning,
       hrLog: clearHrLog ? null : (hrLog ?? this.hrLog),
       hrLogLoading: hrLogLoading ?? this.hrLogLoading,
       steps: clearSteps ? null : (steps ?? this.steps),
@@ -114,6 +120,11 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   StreamSubscription<BleConnectionStatus>? _statusSub;
   final Map<int, Timer> _rtTimeouts = {};
   final Map<int, Timer> _rtRestarts = {};
+  final DailyMeasurementCycleCursor _dailyCycle = DailyMeasurementCycleCursor();
+  Timer? _dailyMeasurementTimeout;
+  Timer? _dailyMeasurementSilenceTimer;
+  int? _dailyActiveReadingType;
+  bool _dailyAdvancing = false;
   HrLogParser? _hrLogParser;
   StepParser? _stepParser;
   String? _connectedDeviceId;
@@ -135,6 +146,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       clearBattery: true,
       realTimeReadings: const {},
       runningMeasurements: const {},
+      dailyMeasurementRunning: false,
       clearHrLog: true,
       clearSteps: true,
       clearHrLogSettings: true,
@@ -173,6 +185,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       clearBattery: true,
       realTimeReadings: const {},
       runningMeasurements: const {},
+      dailyMeasurementRunning: false,
       clearHrLog: true,
       clearSteps: true,
       clearHrLogSettings: true,
@@ -217,6 +230,13 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     }
     _rtTimeouts.clear();
     _rtRestarts.clear();
+    _dailyMeasurementTimeout?.cancel();
+    _dailyMeasurementSilenceTimer?.cancel();
+    _dailyMeasurementTimeout = null;
+    _dailyMeasurementSilenceTimer = null;
+    _dailyActiveReadingType = null;
+    _dailyAdvancing = false;
+    _dailyCycle.reset();
     _hrLogParser = null;
     _stepParser = null;
     _connectedDeviceId = null;
@@ -226,6 +246,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     state = state.copyWith(
       runningMeasurements: const {},
       realTimeReadings: const {},
+      dailyMeasurementRunning: false,
       accelRunning: false,
       clearAccel: true,
     );
@@ -240,11 +261,131 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   }
 
   Future<void> toggleRealTime(int readingType) async {
+    if (state.dailyMeasurementRunning) return;
+
     if (state.runningMeasurements.contains(readingType)) {
       await _stopRealTime(readingType);
     } else {
       await _startRealTime(readingType);
     }
+  }
+
+  Future<void> toggleDailyMeasurement() async {
+    if (state.dailyMeasurementRunning) {
+      await _stopDailyMeasurement();
+    } else {
+      await _startDailyMeasurement();
+    }
+  }
+
+  Future<void> _startDailyMeasurement() async {
+    for (final readingType in state.runningMeasurements.toList()) {
+      await _stopRealTime(readingType);
+    }
+    _dailyMeasurementTimeout?.cancel();
+    _dailyMeasurementSilenceTimer?.cancel();
+    _dailyCycle.reset();
+    _dailyActiveReadingType = null;
+    _dailyAdvancing = false;
+    state = state.copyWith(
+      dailyMeasurementRunning: true,
+      runningMeasurements: const {},
+      clearError: true,
+    );
+    await _startDailyMeasurementStep();
+  }
+
+  Future<void> _stopDailyMeasurement() async {
+    _dailyMeasurementTimeout?.cancel();
+    _dailyMeasurementSilenceTimer?.cancel();
+    _dailyMeasurementTimeout = null;
+    _dailyMeasurementSilenceTimer = null;
+    final active = _dailyActiveReadingType;
+    _dailyActiveReadingType = null;
+    _dailyAdvancing = false;
+    _dailyCycle.reset();
+
+    if (active != null) {
+      try {
+        await _useCases.stopRealTime(active);
+      } catch (_) {}
+    }
+
+    state = state.copyWith(
+      dailyMeasurementRunning: false,
+      runningMeasurements: const {},
+    );
+  }
+
+  Future<void> _startDailyMeasurementStep() async {
+    if (!state.dailyMeasurementRunning) return;
+
+    final readingType = _dailyCycle.current;
+    _dailyActiveReadingType = readingType;
+    _dailyMeasurementTimeout?.cancel();
+    _dailyMeasurementSilenceTimer?.cancel();
+
+    try {
+      await _useCases.startRealTime(readingType);
+    } catch (e) {
+      final info = readingTypeInfo[readingType];
+      await _advanceDailyMeasurement(
+        error: '${info?.label ?? "Messung"} start failed: $e',
+      );
+      return;
+    }
+
+    state = state.copyWith(runningMeasurements: {readingType});
+    _dailyMeasurementTimeout = Timer(const Duration(seconds: 45), () {
+      final info = readingTypeInfo[readingType];
+      unawaited(
+        _advanceDailyMeasurement(
+          error:
+              '${info?.label ?? "Messung"} Timeout - naechste Messung startet.',
+        ),
+      );
+    });
+  }
+
+  Future<void> _advanceDailyMeasurement({String? error}) async {
+    if (!state.dailyMeasurementRunning || _dailyAdvancing) return;
+    _dailyAdvancing = true;
+
+    _dailyMeasurementTimeout?.cancel();
+    _dailyMeasurementSilenceTimer?.cancel();
+    _dailyMeasurementTimeout = null;
+    _dailyMeasurementSilenceTimer = null;
+    final active = _dailyActiveReadingType;
+    _dailyActiveReadingType = null;
+
+    if (active != null) {
+      try {
+        await _useCases.stopRealTime(active);
+      } catch (_) {}
+    }
+
+    _dailyCycle.advance();
+    if (!state.dailyMeasurementRunning) {
+      _dailyAdvancing = false;
+      return;
+    }
+
+    state = state.copyWith(
+      runningMeasurements: const {},
+      error: error,
+      clearError: error == null,
+    );
+    _dailyAdvancing = false;
+    await _startDailyMeasurementStep();
+  }
+
+  void _onDailyMeasurementValue() {
+    _dailyMeasurementTimeout?.cancel();
+    _dailyMeasurementTimeout = null;
+    _dailyMeasurementSilenceTimer?.cancel();
+    _dailyMeasurementSilenceTimer = Timer(const Duration(seconds: 2), () {
+      unawaited(_advanceDailyMeasurement());
+    });
   }
 
   Future<void> _startRealTime(int readingType) async {
@@ -427,7 +568,12 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
           state = state.copyWith(realTimeReadings: updated);
 
           if (resp.hasValue) {
-            _onValidRealTimeReading(resp.type, resp.value);
+            if (state.dailyMeasurementRunning &&
+                resp.type == _dailyActiveReadingType) {
+              _onDailyMeasurementValue();
+            } else {
+              _onValidRealTimeReading(resp.type, resp.value);
+            }
             final deviceId = _connectedDeviceId;
             if (deviceId != null) {
               _persist(
@@ -438,6 +584,15 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
                 ),
               );
             }
+          } else if (state.dailyMeasurementRunning &&
+              resp.type == _dailyActiveReadingType &&
+              resp.errorCode != 0) {
+            unawaited(
+              _advanceDailyMeasurement(
+                error:
+                    'Ring Fehler ${resp.errorCode} - naechste Messung startet.',
+              ),
+            );
           }
         }
 
@@ -513,6 +668,8 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     for (final t in _rtRestarts.values) {
       t.cancel();
     }
+    _dailyMeasurementTimeout?.cancel();
+    _dailyMeasurementSilenceTimer?.cancel();
     _useCases.onDebugLog = null;
     super.dispose();
   }

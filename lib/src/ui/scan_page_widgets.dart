@@ -230,19 +230,44 @@ class BatteryCard extends StatelessWidget {
   }
 }
 
+class DailyMeasurementButton extends StatelessWidget {
+  const DailyMeasurementButton({
+    super.key,
+    required this.isRunning,
+    required this.onToggle,
+  });
+
+  final bool isRunning;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: FilledButton.icon(
+        onPressed: onToggle,
+        icon: Icon(isRunning ? Icons.stop : Icons.play_arrow),
+        label: Text(
+          isRunning ? 'Tagesmessung stoppen' : 'Tagesmessung starten',
+        ),
+      ),
+    );
+  }
+}
+
 class RealTimeCard extends StatelessWidget {
   const RealTimeCard({
     super.key,
     required this.readingType,
     required this.reading,
     required this.isRunning,
-    required this.onToggle,
+    this.onToggle,
   });
 
   final int readingType;
   final RealTimeReading? reading;
   final bool isRunning;
-  final VoidCallback onToggle;
+  final VoidCallback? onToggle;
 
   IconData get _icon {
     return switch (readingType) {
