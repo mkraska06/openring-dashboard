@@ -25,12 +25,6 @@ class ScanPageUseCases {
 
   Stream<Uint8List> get packetStream => _service.packetStream;
 
-  void Function(String line)? get onDebugLog => _service.onDebugLog;
-
-  set onDebugLog(void Function(String line)? value) {
-    _service.onDebugLog = value;
-  }
-
   Future<void> requestBattery() {
     return _service.sendPacket(makeBatteryRequest());
   }

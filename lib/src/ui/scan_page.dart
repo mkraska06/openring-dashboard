@@ -168,6 +168,15 @@ class _DashboardView extends ConsumerWidget {
                   isRunning: pageState.accelRunning,
                   onToggle: notifier.toggleAccelerometer,
                 ),
+                MotionLabCard(
+                  sessionName: pageState.motionSessionName,
+                  recording: pageState.motionRecording,
+                  isRecording: pageState.motionRecordingActive,
+                  canRecord: pageState.accelRunning,
+                  onNameChanged: notifier.setMotionSessionName,
+                  onRecord: notifier.startMotionRecording,
+                  onStop: notifier.stopMotionRecording,
+                ),
                 const Divider(indent: 12, endIndent: 12),
                 HrLogCard(
                   hrLog: pageState.hrLog,
@@ -176,6 +185,7 @@ class _DashboardView extends ConsumerWidget {
                 ),
                 StepsCard(
                   steps: pageState.steps,
+                  dailyActivity: pageState.dailyActivity,
                   isLoading: pageState.stepsLoading,
                   onRequest: notifier.requestSteps,
                 ),
@@ -204,10 +214,6 @@ class _DashboardView extends ConsumerWidget {
                   onSyncTime: notifier.syncTime,
                   onBlink: notifier.blinkTwice,
                   onReboot: notifier.reboot,
-                ),
-                SizedBox(
-                  height: 250,
-                  child: DebugLogPanel(lines: pageState.debugLog),
                 ),
               ],
             ),

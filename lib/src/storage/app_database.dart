@@ -69,6 +69,23 @@ class ActivityIntervals extends Table {
   ];
 }
 
+class MotionSessions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get deviceId => text().references(Devices, #deviceId)();
+  TextColumn get name => text()();
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get endedAt => dateTime().nullable()();
+}
+
+class MotionSamples extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get sessionId => integer().references(MotionSessions, #id)();
+  DateTimeColumn get receivedAt => dateTime()();
+  IntColumn get accX => integer()();
+  IntColumn get accY => integer()();
+  IntColumn get accZ => integer()();
+}
+
 @DriftDatabase(
   tables: [
     Devices,
@@ -76,6 +93,8 @@ class ActivityIntervals extends Table {
     VitalSamples,
     BatterySnapshots,
     ActivityIntervals,
+    MotionSessions,
+    MotionSamples,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -84,12 +103,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(motionSessions);
+        await m.createTable(motionSamples);
+      }
     },
   );
 }

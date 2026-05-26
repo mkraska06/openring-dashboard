@@ -5,6 +5,7 @@ import 'package:openring_v1/src/protocol/commands.dart';
 import 'package:openring_v1/src/protocol/hr_log.dart';
 import 'package:openring_v1/src/protocol/real_time.dart';
 import 'package:openring_v1/src/protocol/steps.dart';
+import 'package:openring_v1/src/protocol/accelerometer.dart';
 import 'package:openring_v1/src/storage/app_database.dart';
 import 'package:openring_v1/src/storage/storage_repository.dart';
 
@@ -163,6 +164,72 @@ void main() {
     expect(intervals.single.calories, 4);
     expect(intervals.single.distanceMeters, 95);
   });
+
+  test(
+    'motion sessions persist raw samples and load latest recording',
+    () async {
+      final first = await storage.startMotionSession(
+        deviceId: 'ring-1',
+        name: 'Ruhe',
+        startedAt: DateTime.utc(2026, 4, 1, 12),
+      );
+      await storage.appendMotionSample(
+        sessionId: first.id,
+        reading: const AccelerometerReading(accX: 100, accY: -200, accZ: 300),
+        receivedAt: DateTime.utc(2026, 4, 1, 12, 0, 1),
+      );
+      await storage.stopMotionSession(
+        sessionId: first.id,
+        endedAt: DateTime.utc(2026, 4, 1, 12, 1),
+      );
+
+      final latest = await storage.startMotionSession(
+        deviceId: 'ring-1',
+        name: 'Kippen',
+        startedAt: DateTime.utc(2026, 4, 1, 13),
+      );
+      await storage.appendMotionSample(
+        sessionId: latest.id,
+        reading: const AccelerometerReading(
+          accX: 7817,
+          accY: -526,
+          accZ: -1205,
+        ),
+        receivedAt: DateTime.utc(2026, 4, 1, 13, 0, 2),
+      );
+      await storage.appendMotionSample(
+        sessionId: latest.id,
+        reading: const AccelerometerReading(accX: -360, accY: -8515, accZ: 322),
+        receivedAt: DateTime.utc(2026, 4, 1, 13, 0, 3),
+      );
+      await storage.startMotionSession(
+        deviceId: 'ring-1',
+        name: 'Empty',
+        startedAt: DateTime.utc(2026, 4, 1, 14),
+      );
+
+      final rows = await db.select(db.motionSamples).get();
+      final loaded = await storage.loadLatestMotionSession(deviceId: 'ring-1');
+
+      expect(rows, hasLength(3));
+      expect(rows.map((row) => [row.accX, row.accY, row.accZ]), [
+        [100, -200, 300],
+        [7817, -526, -1205],
+        [-360, -8515, 322],
+      ]);
+      expect(loaded, isNotNull);
+      expect(loaded!.session.id, latest.id);
+      expect(loaded.session.name, 'Kippen');
+      expect(loaded.samples.map((sample) => sample.reading.accY), [
+        -526,
+        -8515,
+      ]);
+      expect(
+        loaded.samples.first.receivedAt.toUtc(),
+        DateTime.utc(2026, 4, 1, 13, 0, 2),
+      );
+    },
+  );
 
   test(
     'history day filters vitals by selected local day and sorts by time',

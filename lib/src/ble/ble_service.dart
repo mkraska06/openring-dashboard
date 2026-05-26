@@ -44,10 +44,6 @@ class BleService {
   static String hex(Uint8List b) =>
       b.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ');
 
-  /// Optional callback for on-screen debug logging.
-  /// Set by the UI layer to receive "[TX] ..." and "[RX] ..." lines.
-  void Function(String line)? onDebugLog;
-
   // -- internal state -------------------------------------------------------
 
   String? _deviceId;
@@ -59,8 +55,7 @@ class BleService {
   final _packetController = StreamController<Uint8List>.broadcast();
 
   /// Broadcast controller for connection-status changes.
-  final _statusController =
-      StreamController<BleConnectionStatus>.broadcast();
+  final _statusController = StreamController<BleConnectionStatus>.broadcast();
 
   /// Broadcast controller for scan results (filtered to Colmi rings).
   final _scanController = StreamController<BleDevice>.broadcast();
@@ -98,7 +93,9 @@ class BleService {
   /// Discovered devices are emitted on [scanResults].
   /// Scanning stops automatically after [timeout] (default 10 s)
   /// or when [stopScan] is called.
-  Future<void> startScan({Duration timeout = const Duration(seconds: 10)}) async {
+  Future<void> startScan({
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
     if (_status == BleConnectionStatus.scanning) return;
 
     _setStatus(BleConnectionStatus.scanning);
@@ -178,23 +175,23 @@ class BleService {
       // 4. Forward incoming bytes into our packet stream.
       //    Only emit packets that pass the checksum validation.
       _notifySub?.cancel();
-      _notifySub = UniversalBle.characteristicValueStream(
-        deviceId,
-        notifyCharUuid,
-      ).listen(
-        (data) {
-          final line = '[RX] ${hex(data)}';
-          debugPrint(line);
-          onDebugLog?.call(line);
-          if (data.length == packetLength && validatePacket(data)) {
-            _packetController.add(data);
-          }
-        },
-        onError: (Object e) {
-          // Notification stream error – treat as disconnect.
-          _handleDisconnect();
-        },
-      );
+      _notifySub =
+          UniversalBle.characteristicValueStream(
+            deviceId,
+            notifyCharUuid,
+          ).listen(
+            (data) {
+              final line = '[RX${_rxLabel(data)}] ${hex(data)}';
+              debugPrint(line);
+              if (data.length == packetLength && validatePacket(data)) {
+                _packetController.add(data);
+              }
+            },
+            onError: (Object e) {
+              // Notification stream error – treat as disconnect.
+              _handleDisconnect();
+            },
+          );
 
       _setStatus(BleConnectionStatus.connected);
     } catch (e) {
@@ -245,7 +242,6 @@ class BleService {
     );
     final line = '[TX] ${hex(packet)}';
     debugPrint(line);
-    onDebugLog?.call(line);
   }
 
   // -- lifecycle ------------------------------------------------------------
@@ -259,6 +255,17 @@ class BleService {
     _packetController.close();
     _statusController.close();
     _scanController.close();
+  }
+
+  static String _rxLabel(Uint8List data) {
+    if (data.length < 2 || data[0] != 0xA1) return '';
+
+    return switch (data[1]) {
+      0x01 => ' raw subtype 01',
+      0x02 => ' raw subtype 02',
+      0x03 => ' raw accel',
+      _ => ' raw subtype ${data[1].toRadixString(16).padLeft(2, '0')}',
+    };
   }
 
   // -- private helpers ------------------------------------------------------

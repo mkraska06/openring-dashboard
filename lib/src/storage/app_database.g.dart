@@ -1871,6 +1871,758 @@ class ActivityIntervalsCompanion extends UpdateCompanion<ActivityInterval> {
   }
 }
 
+class $MotionSessionsTable extends MotionSessions
+    with TableInfo<$MotionSessionsTable, MotionSession> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MotionSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+    'device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES devices (device_id)',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endedAtMeta = const VerificationMeta(
+    'endedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endedAt = GeneratedColumn<DateTime>(
+    'ended_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    deviceId,
+    name,
+    startedAt,
+    endedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'motion_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MotionSession> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startedAtMeta);
+    }
+    if (data.containsKey('ended_at')) {
+      context.handle(
+        _endedAtMeta,
+        endedAt.isAcceptableOrUnknown(data['ended_at']!, _endedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MotionSession map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MotionSession(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}device_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      )!,
+      endedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ended_at'],
+      ),
+    );
+  }
+
+  @override
+  $MotionSessionsTable createAlias(String alias) {
+    return $MotionSessionsTable(attachedDatabase, alias);
+  }
+}
+
+class MotionSession extends DataClass implements Insertable<MotionSession> {
+  final int id;
+  final String deviceId;
+  final String name;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  const MotionSession({
+    required this.id,
+    required this.deviceId,
+    required this.name,
+    required this.startedAt,
+    this.endedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['device_id'] = Variable<String>(deviceId);
+    map['name'] = Variable<String>(name);
+    map['started_at'] = Variable<DateTime>(startedAt);
+    if (!nullToAbsent || endedAt != null) {
+      map['ended_at'] = Variable<DateTime>(endedAt);
+    }
+    return map;
+  }
+
+  MotionSessionsCompanion toCompanion(bool nullToAbsent) {
+    return MotionSessionsCompanion(
+      id: Value(id),
+      deviceId: Value(deviceId),
+      name: Value(name),
+      startedAt: Value(startedAt),
+      endedAt: endedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endedAt),
+    );
+  }
+
+  factory MotionSession.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MotionSession(
+      id: serializer.fromJson<int>(json['id']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+      name: serializer.fromJson<String>(json['name']),
+      startedAt: serializer.fromJson<DateTime>(json['startedAt']),
+      endedAt: serializer.fromJson<DateTime?>(json['endedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'deviceId': serializer.toJson<String>(deviceId),
+      'name': serializer.toJson<String>(name),
+      'startedAt': serializer.toJson<DateTime>(startedAt),
+      'endedAt': serializer.toJson<DateTime?>(endedAt),
+    };
+  }
+
+  MotionSession copyWith({
+    int? id,
+    String? deviceId,
+    String? name,
+    DateTime? startedAt,
+    Value<DateTime?> endedAt = const Value.absent(),
+  }) => MotionSession(
+    id: id ?? this.id,
+    deviceId: deviceId ?? this.deviceId,
+    name: name ?? this.name,
+    startedAt: startedAt ?? this.startedAt,
+    endedAt: endedAt.present ? endedAt.value : this.endedAt,
+  );
+  MotionSession copyWithCompanion(MotionSessionsCompanion data) {
+    return MotionSession(
+      id: data.id.present ? data.id.value : this.id,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      name: data.name.present ? data.name.value : this.name,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      endedAt: data.endedAt.present ? data.endedAt.value : this.endedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MotionSession(')
+          ..write('id: $id, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('name: $name, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('endedAt: $endedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, deviceId, name, startedAt, endedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MotionSession &&
+          other.id == this.id &&
+          other.deviceId == this.deviceId &&
+          other.name == this.name &&
+          other.startedAt == this.startedAt &&
+          other.endedAt == this.endedAt);
+}
+
+class MotionSessionsCompanion extends UpdateCompanion<MotionSession> {
+  final Value<int> id;
+  final Value<String> deviceId;
+  final Value<String> name;
+  final Value<DateTime> startedAt;
+  final Value<DateTime?> endedAt;
+  const MotionSessionsCompanion({
+    this.id = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.endedAt = const Value.absent(),
+  });
+  MotionSessionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String deviceId,
+    required String name,
+    required DateTime startedAt,
+    this.endedAt = const Value.absent(),
+  }) : deviceId = Value(deviceId),
+       name = Value(name),
+       startedAt = Value(startedAt);
+  static Insertable<MotionSession> custom({
+    Expression<int>? id,
+    Expression<String>? deviceId,
+    Expression<String>? name,
+    Expression<DateTime>? startedAt,
+    Expression<DateTime>? endedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (deviceId != null) 'device_id': deviceId,
+      if (name != null) 'name': name,
+      if (startedAt != null) 'started_at': startedAt,
+      if (endedAt != null) 'ended_at': endedAt,
+    });
+  }
+
+  MotionSessionsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? deviceId,
+    Value<String>? name,
+    Value<DateTime>? startedAt,
+    Value<DateTime?>? endedAt,
+  }) {
+    return MotionSessionsCompanion(
+      id: id ?? this.id,
+      deviceId: deviceId ?? this.deviceId,
+      name: name ?? this.name,
+      startedAt: startedAt ?? this.startedAt,
+      endedAt: endedAt ?? this.endedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (endedAt.present) {
+      map['ended_at'] = Variable<DateTime>(endedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MotionSessionsCompanion(')
+          ..write('id: $id, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('name: $name, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('endedAt: $endedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MotionSamplesTable extends MotionSamples
+    with TableInfo<$MotionSamplesTable, MotionSample> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MotionSamplesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<int> sessionId = GeneratedColumn<int>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES motion_sessions (id)',
+    ),
+  );
+  static const VerificationMeta _receivedAtMeta = const VerificationMeta(
+    'receivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> receivedAt = GeneratedColumn<DateTime>(
+    'received_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accXMeta = const VerificationMeta('accX');
+  @override
+  late final GeneratedColumn<int> accX = GeneratedColumn<int>(
+    'acc_x',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accYMeta = const VerificationMeta('accY');
+  @override
+  late final GeneratedColumn<int> accY = GeneratedColumn<int>(
+    'acc_y',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accZMeta = const VerificationMeta('accZ');
+  @override
+  late final GeneratedColumn<int> accZ = GeneratedColumn<int>(
+    'acc_z',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionId,
+    receivedAt,
+    accX,
+    accY,
+    accZ,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'motion_samples';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MotionSample> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('received_at')) {
+      context.handle(
+        _receivedAtMeta,
+        receivedAt.isAcceptableOrUnknown(data['received_at']!, _receivedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_receivedAtMeta);
+    }
+    if (data.containsKey('acc_x')) {
+      context.handle(
+        _accXMeta,
+        accX.isAcceptableOrUnknown(data['acc_x']!, _accXMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accXMeta);
+    }
+    if (data.containsKey('acc_y')) {
+      context.handle(
+        _accYMeta,
+        accY.isAcceptableOrUnknown(data['acc_y']!, _accYMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accYMeta);
+    }
+    if (data.containsKey('acc_z')) {
+      context.handle(
+        _accZMeta,
+        accZ.isAcceptableOrUnknown(data['acc_z']!, _accZMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accZMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MotionSample map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MotionSample(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}session_id'],
+      )!,
+      receivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}received_at'],
+      )!,
+      accX: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}acc_x'],
+      )!,
+      accY: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}acc_y'],
+      )!,
+      accZ: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}acc_z'],
+      )!,
+    );
+  }
+
+  @override
+  $MotionSamplesTable createAlias(String alias) {
+    return $MotionSamplesTable(attachedDatabase, alias);
+  }
+}
+
+class MotionSample extends DataClass implements Insertable<MotionSample> {
+  final int id;
+  final int sessionId;
+  final DateTime receivedAt;
+  final int accX;
+  final int accY;
+  final int accZ;
+  const MotionSample({
+    required this.id,
+    required this.sessionId,
+    required this.receivedAt,
+    required this.accX,
+    required this.accY,
+    required this.accZ,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['session_id'] = Variable<int>(sessionId);
+    map['received_at'] = Variable<DateTime>(receivedAt);
+    map['acc_x'] = Variable<int>(accX);
+    map['acc_y'] = Variable<int>(accY);
+    map['acc_z'] = Variable<int>(accZ);
+    return map;
+  }
+
+  MotionSamplesCompanion toCompanion(bool nullToAbsent) {
+    return MotionSamplesCompanion(
+      id: Value(id),
+      sessionId: Value(sessionId),
+      receivedAt: Value(receivedAt),
+      accX: Value(accX),
+      accY: Value(accY),
+      accZ: Value(accZ),
+    );
+  }
+
+  factory MotionSample.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MotionSample(
+      id: serializer.fromJson<int>(json['id']),
+      sessionId: serializer.fromJson<int>(json['sessionId']),
+      receivedAt: serializer.fromJson<DateTime>(json['receivedAt']),
+      accX: serializer.fromJson<int>(json['accX']),
+      accY: serializer.fromJson<int>(json['accY']),
+      accZ: serializer.fromJson<int>(json['accZ']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'sessionId': serializer.toJson<int>(sessionId),
+      'receivedAt': serializer.toJson<DateTime>(receivedAt),
+      'accX': serializer.toJson<int>(accX),
+      'accY': serializer.toJson<int>(accY),
+      'accZ': serializer.toJson<int>(accZ),
+    };
+  }
+
+  MotionSample copyWith({
+    int? id,
+    int? sessionId,
+    DateTime? receivedAt,
+    int? accX,
+    int? accY,
+    int? accZ,
+  }) => MotionSample(
+    id: id ?? this.id,
+    sessionId: sessionId ?? this.sessionId,
+    receivedAt: receivedAt ?? this.receivedAt,
+    accX: accX ?? this.accX,
+    accY: accY ?? this.accY,
+    accZ: accZ ?? this.accZ,
+  );
+  MotionSample copyWithCompanion(MotionSamplesCompanion data) {
+    return MotionSample(
+      id: data.id.present ? data.id.value : this.id,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      receivedAt: data.receivedAt.present
+          ? data.receivedAt.value
+          : this.receivedAt,
+      accX: data.accX.present ? data.accX.value : this.accX,
+      accY: data.accY.present ? data.accY.value : this.accY,
+      accZ: data.accZ.present ? data.accZ.value : this.accZ,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MotionSample(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('receivedAt: $receivedAt, ')
+          ..write('accX: $accX, ')
+          ..write('accY: $accY, ')
+          ..write('accZ: $accZ')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, sessionId, receivedAt, accX, accY, accZ);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MotionSample &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.receivedAt == this.receivedAt &&
+          other.accX == this.accX &&
+          other.accY == this.accY &&
+          other.accZ == this.accZ);
+}
+
+class MotionSamplesCompanion extends UpdateCompanion<MotionSample> {
+  final Value<int> id;
+  final Value<int> sessionId;
+  final Value<DateTime> receivedAt;
+  final Value<int> accX;
+  final Value<int> accY;
+  final Value<int> accZ;
+  const MotionSamplesCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.receivedAt = const Value.absent(),
+    this.accX = const Value.absent(),
+    this.accY = const Value.absent(),
+    this.accZ = const Value.absent(),
+  });
+  MotionSamplesCompanion.insert({
+    this.id = const Value.absent(),
+    required int sessionId,
+    required DateTime receivedAt,
+    required int accX,
+    required int accY,
+    required int accZ,
+  }) : sessionId = Value(sessionId),
+       receivedAt = Value(receivedAt),
+       accX = Value(accX),
+       accY = Value(accY),
+       accZ = Value(accZ);
+  static Insertable<MotionSample> custom({
+    Expression<int>? id,
+    Expression<int>? sessionId,
+    Expression<DateTime>? receivedAt,
+    Expression<int>? accX,
+    Expression<int>? accY,
+    Expression<int>? accZ,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (receivedAt != null) 'received_at': receivedAt,
+      if (accX != null) 'acc_x': accX,
+      if (accY != null) 'acc_y': accY,
+      if (accZ != null) 'acc_z': accZ,
+    });
+  }
+
+  MotionSamplesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? sessionId,
+    Value<DateTime>? receivedAt,
+    Value<int>? accX,
+    Value<int>? accY,
+    Value<int>? accZ,
+  }) {
+    return MotionSamplesCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      receivedAt: receivedAt ?? this.receivedAt,
+      accX: accX ?? this.accX,
+      accY: accY ?? this.accY,
+      accZ: accZ ?? this.accZ,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<int>(sessionId.value);
+    }
+    if (receivedAt.present) {
+      map['received_at'] = Variable<DateTime>(receivedAt.value);
+    }
+    if (accX.present) {
+      map['acc_x'] = Variable<int>(accX.value);
+    }
+    if (accY.present) {
+      map['acc_y'] = Variable<int>(accY.value);
+    }
+    if (accZ.present) {
+      map['acc_z'] = Variable<int>(accZ.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MotionSamplesCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('receivedAt: $receivedAt, ')
+          ..write('accX: $accX, ')
+          ..write('accY: $accY, ')
+          ..write('accZ: $accZ')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1882,6 +2634,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $ActivityIntervalsTable activityIntervals =
       $ActivityIntervalsTable(this);
+  late final $MotionSessionsTable motionSessions = $MotionSessionsTable(this);
+  late final $MotionSamplesTable motionSamples = $MotionSamplesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1892,6 +2646,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     vitalSamples,
     batterySnapshots,
     activityIntervals,
+    motionSessions,
+    motionSamples,
   ];
 }
 
@@ -1985,6 +2741,28 @@ final class $$DevicesTableReferences
     final cache = $_typedResult.readTableOrNull(
       _activityIntervalsRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MotionSessionsTable, List<MotionSession>>
+  _motionSessionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.motionSessions,
+    aliasName: $_aliasNameGenerator(
+      db.devices.deviceId,
+      db.motionSessions.deviceId,
+    ),
+  );
+
+  $$MotionSessionsTableProcessedTableManager get motionSessionsRefs {
+    final manager = $$MotionSessionsTableTableManager($_db, $_db.motionSessions)
+        .filter(
+          (f) =>
+              f.deviceId.deviceId.sqlEquals($_itemColumn<String>('device_id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_motionSessionsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -2086,6 +2864,31 @@ class $$DevicesTableFilterComposer
           }) => $$ActivityIntervalsTableFilterComposer(
             $db: $db,
             $table: $db.activityIntervals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> motionSessionsRefs(
+    Expression<bool> Function($$MotionSessionsTableFilterComposer f) f,
+  ) {
+    final $$MotionSessionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.motionSessions,
+      getReferencedColumn: (t) => t.deviceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MotionSessionsTableFilterComposer(
+            $db: $db,
+            $table: $db.motionSessions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2226,6 +3029,31 @@ class $$DevicesTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> motionSessionsRefs<T extends Object>(
+    Expression<T> Function($$MotionSessionsTableAnnotationComposer a) f,
+  ) {
+    final $$MotionSessionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.motionSessions,
+      getReferencedColumn: (t) => t.deviceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MotionSessionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.motionSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DevicesTableTableManager
@@ -2245,6 +3073,7 @@ class $$DevicesTableTableManager
             bool vitalSamplesRefs,
             bool batterySnapshotsRefs,
             bool activityIntervalsRefs,
+            bool motionSessionsRefs,
           })
         > {
   $$DevicesTableTableManager(_$AppDatabase db, $DevicesTable table)
@@ -2299,6 +3128,7 @@ class $$DevicesTableTableManager
                 vitalSamplesRefs = false,
                 batterySnapshotsRefs = false,
                 activityIntervalsRefs = false,
+                motionSessionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -2306,6 +3136,7 @@ class $$DevicesTableTableManager
                     if (vitalSamplesRefs) db.vitalSamples,
                     if (batterySnapshotsRefs) db.batterySnapshots,
                     if (activityIntervalsRefs) db.activityIntervals,
+                    if (motionSessionsRefs) db.motionSessions,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -2373,6 +3204,27 @@ class $$DevicesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (motionSessionsRefs)
+                        await $_getPrefetchedData<
+                          Device,
+                          $DevicesTable,
+                          MotionSession
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DevicesTableReferences
+                              ._motionSessionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DevicesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).motionSessionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.deviceId == item.deviceId,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -2397,6 +3249,7 @@ typedef $$DevicesTableProcessedTableManager =
         bool vitalSamplesRefs,
         bool batterySnapshotsRefs,
         bool activityIntervalsRefs,
+        bool motionSessionsRefs,
       })
     >;
 typedef $$AppSettingsTableCreateCompanionBuilder =
@@ -3608,6 +4461,761 @@ typedef $$ActivityIntervalsTableProcessedTableManager =
       ActivityInterval,
       PrefetchHooks Function({bool deviceId})
     >;
+typedef $$MotionSessionsTableCreateCompanionBuilder =
+    MotionSessionsCompanion Function({
+      Value<int> id,
+      required String deviceId,
+      required String name,
+      required DateTime startedAt,
+      Value<DateTime?> endedAt,
+    });
+typedef $$MotionSessionsTableUpdateCompanionBuilder =
+    MotionSessionsCompanion Function({
+      Value<int> id,
+      Value<String> deviceId,
+      Value<String> name,
+      Value<DateTime> startedAt,
+      Value<DateTime?> endedAt,
+    });
+
+final class $$MotionSessionsTableReferences
+    extends BaseReferences<_$AppDatabase, $MotionSessionsTable, MotionSession> {
+  $$MotionSessionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DevicesTable _deviceIdTable(_$AppDatabase db) =>
+      db.devices.createAlias(
+        $_aliasNameGenerator(db.motionSessions.deviceId, db.devices.deviceId),
+      );
+
+  $$DevicesTableProcessedTableManager get deviceId {
+    final $_column = $_itemColumn<String>('device_id')!;
+
+    final manager = $$DevicesTableTableManager(
+      $_db,
+      $_db.devices,
+    ).filter((f) => f.deviceId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_deviceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$MotionSamplesTable, List<MotionSample>>
+  _motionSamplesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.motionSamples,
+    aliasName: $_aliasNameGenerator(
+      db.motionSessions.id,
+      db.motionSamples.sessionId,
+    ),
+  );
+
+  $$MotionSamplesTableProcessedTableManager get motionSamplesRefs {
+    final manager = $$MotionSamplesTableTableManager(
+      $_db,
+      $_db.motionSamples,
+    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_motionSamplesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$MotionSessionsTableFilterComposer
+    extends Composer<_$AppDatabase, $MotionSessionsTable> {
+  $$MotionSessionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DevicesTableFilterComposer get deviceId {
+    final $$DevicesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.devices,
+      getReferencedColumn: (t) => t.deviceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DevicesTableFilterComposer(
+            $db: $db,
+            $table: $db.devices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> motionSamplesRefs(
+    Expression<bool> Function($$MotionSamplesTableFilterComposer f) f,
+  ) {
+    final $$MotionSamplesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.motionSamples,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MotionSamplesTableFilterComposer(
+            $db: $db,
+            $table: $db.motionSamples,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$MotionSessionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MotionSessionsTable> {
+  $$MotionSessionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endedAt => $composableBuilder(
+    column: $table.endedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DevicesTableOrderingComposer get deviceId {
+    final $$DevicesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.devices,
+      getReferencedColumn: (t) => t.deviceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DevicesTableOrderingComposer(
+            $db: $db,
+            $table: $db.devices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MotionSessionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MotionSessionsTable> {
+  $$MotionSessionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endedAt =>
+      $composableBuilder(column: $table.endedAt, builder: (column) => column);
+
+  $$DevicesTableAnnotationComposer get deviceId {
+    final $$DevicesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.devices,
+      getReferencedColumn: (t) => t.deviceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DevicesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.devices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> motionSamplesRefs<T extends Object>(
+    Expression<T> Function($$MotionSamplesTableAnnotationComposer a) f,
+  ) {
+    final $$MotionSamplesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.motionSamples,
+      getReferencedColumn: (t) => t.sessionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MotionSamplesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.motionSamples,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$MotionSessionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MotionSessionsTable,
+          MotionSession,
+          $$MotionSessionsTableFilterComposer,
+          $$MotionSessionsTableOrderingComposer,
+          $$MotionSessionsTableAnnotationComposer,
+          $$MotionSessionsTableCreateCompanionBuilder,
+          $$MotionSessionsTableUpdateCompanionBuilder,
+          (MotionSession, $$MotionSessionsTableReferences),
+          MotionSession,
+          PrefetchHooks Function({bool deviceId, bool motionSamplesRefs})
+        > {
+  $$MotionSessionsTableTableManager(
+    _$AppDatabase db,
+    $MotionSessionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MotionSessionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MotionSessionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MotionSessionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> deviceId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<DateTime> startedAt = const Value.absent(),
+                Value<DateTime?> endedAt = const Value.absent(),
+              }) => MotionSessionsCompanion(
+                id: id,
+                deviceId: deviceId,
+                name: name,
+                startedAt: startedAt,
+                endedAt: endedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String deviceId,
+                required String name,
+                required DateTime startedAt,
+                Value<DateTime?> endedAt = const Value.absent(),
+              }) => MotionSessionsCompanion.insert(
+                id: id,
+                deviceId: deviceId,
+                name: name,
+                startedAt: startedAt,
+                endedAt: endedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MotionSessionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({deviceId = false, motionSamplesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (motionSamplesRefs) db.motionSamples,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (deviceId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.deviceId,
+                                    referencedTable:
+                                        $$MotionSessionsTableReferences
+                                            ._deviceIdTable(db),
+                                    referencedColumn:
+                                        $$MotionSessionsTableReferences
+                                            ._deviceIdTable(db)
+                                            .deviceId,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (motionSamplesRefs)
+                        await $_getPrefetchedData<
+                          MotionSession,
+                          $MotionSessionsTable,
+                          MotionSample
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MotionSessionsTableReferences
+                              ._motionSamplesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MotionSessionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).motionSamplesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.sessionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$MotionSessionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MotionSessionsTable,
+      MotionSession,
+      $$MotionSessionsTableFilterComposer,
+      $$MotionSessionsTableOrderingComposer,
+      $$MotionSessionsTableAnnotationComposer,
+      $$MotionSessionsTableCreateCompanionBuilder,
+      $$MotionSessionsTableUpdateCompanionBuilder,
+      (MotionSession, $$MotionSessionsTableReferences),
+      MotionSession,
+      PrefetchHooks Function({bool deviceId, bool motionSamplesRefs})
+    >;
+typedef $$MotionSamplesTableCreateCompanionBuilder =
+    MotionSamplesCompanion Function({
+      Value<int> id,
+      required int sessionId,
+      required DateTime receivedAt,
+      required int accX,
+      required int accY,
+      required int accZ,
+    });
+typedef $$MotionSamplesTableUpdateCompanionBuilder =
+    MotionSamplesCompanion Function({
+      Value<int> id,
+      Value<int> sessionId,
+      Value<DateTime> receivedAt,
+      Value<int> accX,
+      Value<int> accY,
+      Value<int> accZ,
+    });
+
+final class $$MotionSamplesTableReferences
+    extends BaseReferences<_$AppDatabase, $MotionSamplesTable, MotionSample> {
+  $$MotionSamplesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MotionSessionsTable _sessionIdTable(_$AppDatabase db) =>
+      db.motionSessions.createAlias(
+        $_aliasNameGenerator(db.motionSamples.sessionId, db.motionSessions.id),
+      );
+
+  $$MotionSessionsTableProcessedTableManager get sessionId {
+    final $_column = $_itemColumn<int>('session_id')!;
+
+    final manager = $$MotionSessionsTableTableManager(
+      $_db,
+      $_db.motionSessions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MotionSamplesTableFilterComposer
+    extends Composer<_$AppDatabase, $MotionSamplesTable> {
+  $$MotionSamplesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get receivedAt => $composableBuilder(
+    column: $table.receivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accX => $composableBuilder(
+    column: $table.accX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accY => $composableBuilder(
+    column: $table.accY,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accZ => $composableBuilder(
+    column: $table.accZ,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MotionSessionsTableFilterComposer get sessionId {
+    final $$MotionSessionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.motionSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MotionSessionsTableFilterComposer(
+            $db: $db,
+            $table: $db.motionSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MotionSamplesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MotionSamplesTable> {
+  $$MotionSamplesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get receivedAt => $composableBuilder(
+    column: $table.receivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accX => $composableBuilder(
+    column: $table.accX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accY => $composableBuilder(
+    column: $table.accY,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accZ => $composableBuilder(
+    column: $table.accZ,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MotionSessionsTableOrderingComposer get sessionId {
+    final $$MotionSessionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.motionSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MotionSessionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.motionSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MotionSamplesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MotionSamplesTable> {
+  $$MotionSamplesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get receivedAt => $composableBuilder(
+    column: $table.receivedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get accX =>
+      $composableBuilder(column: $table.accX, builder: (column) => column);
+
+  GeneratedColumn<int> get accY =>
+      $composableBuilder(column: $table.accY, builder: (column) => column);
+
+  GeneratedColumn<int> get accZ =>
+      $composableBuilder(column: $table.accZ, builder: (column) => column);
+
+  $$MotionSessionsTableAnnotationComposer get sessionId {
+    final $$MotionSessionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sessionId,
+      referencedTable: $db.motionSessions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MotionSessionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.motionSessions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MotionSamplesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MotionSamplesTable,
+          MotionSample,
+          $$MotionSamplesTableFilterComposer,
+          $$MotionSamplesTableOrderingComposer,
+          $$MotionSamplesTableAnnotationComposer,
+          $$MotionSamplesTableCreateCompanionBuilder,
+          $$MotionSamplesTableUpdateCompanionBuilder,
+          (MotionSample, $$MotionSamplesTableReferences),
+          MotionSample,
+          PrefetchHooks Function({bool sessionId})
+        > {
+  $$MotionSamplesTableTableManager(_$AppDatabase db, $MotionSamplesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MotionSamplesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MotionSamplesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MotionSamplesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> sessionId = const Value.absent(),
+                Value<DateTime> receivedAt = const Value.absent(),
+                Value<int> accX = const Value.absent(),
+                Value<int> accY = const Value.absent(),
+                Value<int> accZ = const Value.absent(),
+              }) => MotionSamplesCompanion(
+                id: id,
+                sessionId: sessionId,
+                receivedAt: receivedAt,
+                accX: accX,
+                accY: accY,
+                accZ: accZ,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int sessionId,
+                required DateTime receivedAt,
+                required int accX,
+                required int accY,
+                required int accZ,
+              }) => MotionSamplesCompanion.insert(
+                id: id,
+                sessionId: sessionId,
+                receivedAt: receivedAt,
+                accX: accX,
+                accY: accY,
+                accZ: accZ,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MotionSamplesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sessionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sessionId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sessionId,
+                                referencedTable: $$MotionSamplesTableReferences
+                                    ._sessionIdTable(db),
+                                referencedColumn: $$MotionSamplesTableReferences
+                                    ._sessionIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MotionSamplesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MotionSamplesTable,
+      MotionSample,
+      $$MotionSamplesTableFilterComposer,
+      $$MotionSamplesTableOrderingComposer,
+      $$MotionSamplesTableAnnotationComposer,
+      $$MotionSamplesTableCreateCompanionBuilder,
+      $$MotionSamplesTableUpdateCompanionBuilder,
+      (MotionSample, $$MotionSamplesTableReferences),
+      MotionSample,
+      PrefetchHooks Function({bool sessionId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3622,4 +5230,8 @@ class $AppDatabaseManager {
       $$BatterySnapshotsTableTableManager(_db, _db.batterySnapshots);
   $$ActivityIntervalsTableTableManager get activityIntervals =>
       $$ActivityIntervalsTableTableManager(_db, _db.activityIntervals);
+  $$MotionSessionsTableTableManager get motionSessions =>
+      $$MotionSessionsTableTableManager(_db, _db.motionSessions);
+  $$MotionSamplesTableTableManager get motionSamples =>
+      $$MotionSamplesTableTableManager(_db, _db.motionSamples);
 }

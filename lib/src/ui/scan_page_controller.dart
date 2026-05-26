@@ -7,6 +7,7 @@ import 'package:universal_ble/universal_ble.dart' hide BleService;
 import '../ble/ble_service.dart';
 import '../measurements/daily_measurement_cycle.dart';
 import '../protocol/accelerometer.dart';
+import '../protocol/activity.dart';
 import '../protocol/battery.dart';
 import '../protocol/commands.dart';
 import '../protocol/hr_log.dart';
@@ -15,6 +16,7 @@ import '../protocol/real_time.dart';
 import '../protocol/steps.dart';
 import '../history/history_page_controller.dart';
 import '../storage/storage_repository.dart';
+import '../storage/motion_models.dart';
 import 'scan_page_use_cases.dart';
 
 class ScanPageState {
@@ -26,12 +28,15 @@ class ScanPageState {
   final HrLogResult? hrLog;
   final bool hrLogLoading;
   final List<StepEntry>? steps;
+  final DailyActivitySnapshot? dailyActivity;
   final bool stepsLoading;
   final HrLogSettings? hrLogSettings;
   final AccelerometerReading? lastAccel;
   final bool accelRunning;
+  final String motionSessionName;
+  final MotionSessionRecording? motionRecording;
+  final bool motionRecordingActive;
   final String? error;
-  final List<String> debugLog;
 
   const ScanPageState({
     this.foundDevices = const {},
@@ -42,12 +47,15 @@ class ScanPageState {
     this.hrLog,
     this.hrLogLoading = false,
     this.steps,
+    this.dailyActivity,
     this.stepsLoading = false,
     this.hrLogSettings,
     this.lastAccel,
     this.accelRunning = false,
+    this.motionSessionName = '',
+    this.motionRecording,
+    this.motionRecordingActive = false,
     this.error,
-    this.debugLog = const [],
   });
 
   ScanPageState copyWith({
@@ -62,15 +70,20 @@ class ScanPageState {
     bool? hrLogLoading,
     List<StepEntry>? steps,
     bool clearSteps = false,
+    DailyActivitySnapshot? dailyActivity,
+    bool clearDailyActivity = false,
     bool? stepsLoading,
     HrLogSettings? hrLogSettings,
     bool clearHrLogSettings = false,
     AccelerometerReading? lastAccel,
     bool clearAccel = false,
     bool? accelRunning,
+    String? motionSessionName,
+    MotionSessionRecording? motionRecording,
+    bool clearMotionRecording = false,
+    bool? motionRecordingActive,
     String? error,
     bool clearError = false,
-    List<String>? debugLog,
   }) {
     return ScanPageState(
       foundDevices: foundDevices ?? this.foundDevices,
@@ -82,16 +95,36 @@ class ScanPageState {
       hrLog: clearHrLog ? null : (hrLog ?? this.hrLog),
       hrLogLoading: hrLogLoading ?? this.hrLogLoading,
       steps: clearSteps ? null : (steps ?? this.steps),
+      dailyActivity: clearDailyActivity
+          ? null
+          : (dailyActivity ?? this.dailyActivity),
       stepsLoading: stepsLoading ?? this.stepsLoading,
       hrLogSettings: clearHrLogSettings
           ? null
           : (hrLogSettings ?? this.hrLogSettings),
       lastAccel: clearAccel ? null : (lastAccel ?? this.lastAccel),
       accelRunning: accelRunning ?? this.accelRunning,
+      motionSessionName: motionSessionName ?? this.motionSessionName,
+      motionRecording: clearMotionRecording
+          ? null
+          : (motionRecording ?? this.motionRecording),
+      motionRecordingActive:
+          motionRecordingActive ?? this.motionRecordingActive,
       error: clearError ? null : (error ?? this.error),
-      debugLog: debugLog ?? this.debugLog,
     );
   }
+}
+
+Map<int, RealTimeReading> mergeRealTimeReadingForDisplay(
+  Map<int, RealTimeReading> readings,
+  RealTimeReading next,
+) {
+  final previous = readings[next.type];
+  if (!next.hasValue && previous != null && previous.hasValue) {
+    return readings;
+  }
+
+  return Map<int, RealTimeReading>.from(readings)..[next.type] = next;
 }
 
 class ScanPageNotifier extends StateNotifier<ScanPageState> {
@@ -128,17 +161,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   HrLogParser? _hrLogParser;
   StepParser? _stepParser;
   String? _connectedDeviceId;
-
-  static const _maxLogLines = 50;
-
-  void _addLogLine(String line) {
-    final log = [...state.debugLog, line];
-    if (log.length > _maxLogLines) {
-      state = state.copyWith(debugLog: log.sublist(log.length - _maxLogLines));
-    } else {
-      state = state.copyWith(debugLog: log);
-    }
-  }
+  int? _activeMotionSessionId;
 
   Future<void> startScan() async {
     state = state.copyWith(
@@ -149,11 +172,12 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       dailyMeasurementRunning: false,
       clearHrLog: true,
       clearSteps: true,
+      clearDailyActivity: true,
       clearHrLogSettings: true,
       clearAccel: true,
       accelRunning: false,
+      motionRecordingActive: false,
       clearError: true,
-      debugLog: const [],
     );
 
     _scanSub?.cancel();
@@ -188,15 +212,14 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       dailyMeasurementRunning: false,
       clearHrLog: true,
       clearSteps: true,
+      clearDailyActivity: true,
       clearHrLogSettings: true,
       clearAccel: true,
       accelRunning: false,
+      motionRecordingActive: false,
       clearError: true,
-      debugLog: const [],
     );
     await _scanSub?.cancel();
-
-    _useCases.onDebugLog = _addLogLine;
 
     try {
       await _useCases.connect(deviceId);
@@ -215,6 +238,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     _packetSub = _useCases.packetStream.listen(_onPacket);
 
     await _requestBattery();
+    await _loadLatestMotionSession(deviceId);
   }
 
   Future<void> disconnect() async {
@@ -240,15 +264,20 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     _hrLogParser = null;
     _stepParser = null;
     _connectedDeviceId = null;
+    final activeMotionSessionId = _activeMotionSessionId;
+    _activeMotionSessionId = null;
+    if (activeMotionSessionId != null) {
+      unawaited(_storage.stopMotionSession(sessionId: activeMotionSessionId));
+    }
     _packetSub?.cancel();
     _packetSub = null;
-    _useCases.onDebugLog = null;
     state = state.copyWith(
       runningMeasurements: const {},
       realTimeReadings: const {},
       dailyMeasurementRunning: false,
       accelRunning: false,
       clearAccel: true,
+      motionRecordingActive: false,
     );
   }
 
@@ -513,10 +542,75 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   }
 
   Future<void> _stopAccelerometer() async {
+    if (state.motionRecordingActive) {
+      await stopMotionRecording();
+    }
     try {
       await _useCases.stopAccelerometer();
     } catch (_) {}
     state = state.copyWith(accelRunning: false);
+  }
+
+  void setMotionSessionName(String value) {
+    state = state.copyWith(motionSessionName: value);
+  }
+
+  Future<void> startMotionRecording() async {
+    final deviceId = _connectedDeviceId;
+    if (deviceId == null || !state.accelRunning) return;
+
+    final name = state.motionSessionName.trim().isEmpty
+        ? _defaultMotionSessionName()
+        : state.motionSessionName.trim();
+
+    try {
+      final session = await _storage.startMotionSession(
+        deviceId: deviceId,
+        name: name,
+      );
+      _activeMotionSessionId = session.id;
+      state = state.copyWith(
+        motionSessionName: name,
+        motionRecording: MotionSessionRecording(
+          session: session,
+          samples: const [],
+        ),
+        motionRecordingActive: true,
+        clearError: true,
+      );
+    } catch (e) {
+      state = state.copyWith(error: 'Motion-Aufnahme fehlgeschlagen: $e');
+    }
+  }
+
+  Future<void> stopMotionRecording() async {
+    final sessionId = _activeMotionSessionId;
+    if (sessionId == null) return;
+
+    try {
+      await _storage.stopMotionSession(sessionId: sessionId);
+      _activeMotionSessionId = null;
+      final recording = state.motionRecording;
+      state = state.copyWith(
+        motionRecording: recording == null
+            ? null
+            : MotionSessionRecording(
+                session: MotionSessionSummary(
+                  id: recording.session.id,
+                  deviceId: recording.session.deviceId,
+                  name: recording.session.name,
+                  startedAt: recording.session.startedAt,
+                  endedAt: DateTime.now(),
+                ),
+                samples: recording.samples,
+              ),
+        motionRecordingActive: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        error: 'Motion-Aufnahme stoppen fehlgeschlagen: $e',
+      );
+    }
   }
 
   Future<void> syncTime() async {
@@ -563,9 +657,12 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       case Cmd.startRealTime:
         final resp = parseRealTimeResponse(packet);
         if (resp != null) {
-          final updated = Map<int, RealTimeReading>.from(state.realTimeReadings)
-            ..[resp.type] = resp;
-          state = state.copyWith(realTimeReadings: updated);
+          state = state.copyWith(
+            realTimeReadings: mergeRealTimeReadingForDisplay(
+              state.realTimeReadings,
+              resp,
+            ),
+          );
 
           if (resp.hasValue) {
             if (state.dailyMeasurementRunning &&
@@ -634,12 +731,70 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
           }
         }
 
+      case cmdGeneralNotification:
+        final activity = parseDailyActivityNotification(packet);
+        if (activity != null) {
+          state = state.copyWith(dailyActivity: activity);
+        }
+
       case cmdRawSensor:
         final reading = parseAccelerometerResponse(packet);
         if (reading != null) {
           state = state.copyWith(lastAccel: reading);
+          _appendMotionSample(reading);
         }
     }
+  }
+
+  Future<void> _loadLatestMotionSession(String deviceId) async {
+    try {
+      final recording = await _storage.loadLatestMotionSession(
+        deviceId: deviceId,
+      );
+      state = state.copyWith(
+        motionRecording: recording,
+        clearMotionRecording: recording == null,
+        motionSessionName:
+            recording?.session.name ?? _defaultMotionSessionName(),
+      );
+    } catch (e) {
+      state = state.copyWith(error: 'Motion-Session laden fehlgeschlagen: $e');
+    }
+  }
+
+  void _appendMotionSample(AccelerometerReading reading) {
+    final sessionId = _activeMotionSessionId;
+    final recording = state.motionRecording;
+    if (sessionId == null ||
+        recording == null ||
+        !state.motionRecordingActive) {
+      return;
+    }
+
+    final sample = MotionSamplePoint(
+      receivedAt: DateTime.now(),
+      reading: reading,
+    );
+    state = state.copyWith(
+      motionRecording: MotionSessionRecording(
+        session: recording.session,
+        samples: [...recording.samples, sample],
+      ),
+    );
+    _persistMotion(
+      () => _storage.appendMotionSample(
+        sessionId: sessionId,
+        reading: reading,
+        receivedAt: sample.receivedAt,
+      ),
+    );
+  }
+
+  String _defaultMotionSessionName() {
+    final now = DateTime.now();
+    String two(int value) => value.toString().padLeft(2, '0');
+    return 'Motion ${now.year}-${two(now.month)}-${two(now.day)} '
+        '${two(now.hour)}:${two(now.minute)}';
   }
 
   void clearError() => state = state.copyWith(clearError: true);
@@ -651,9 +806,16 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
             _onHistoryDataChanged();
           })
           .catchError((Object e, StackTrace _) {
-            _addLogLine('[DB] $e');
             state = state.copyWith(error: 'DB speichern fehlgeschlagen: $e');
           }),
+    );
+  }
+
+  void _persistMotion(Future<void> Function() write) {
+    unawaited(
+      write().catchError((Object e, StackTrace _) {
+        state = state.copyWith(error: 'Motion speichern fehlgeschlagen: $e');
+      }),
     );
   }
 
@@ -670,7 +832,6 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     }
     _dailyMeasurementTimeout?.cancel();
     _dailyMeasurementSilenceTimer?.cancel();
-    _useCases.onDebugLog = null;
     super.dispose();
   }
 }

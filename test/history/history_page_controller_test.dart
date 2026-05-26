@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openring_v1/src/history/history_page_controller.dart';
 import 'package:openring_v1/src/protocol/battery.dart';
+import 'package:openring_v1/src/protocol/accelerometer.dart';
 import 'package:openring_v1/src/protocol/hr_log.dart';
 import 'package:openring_v1/src/protocol/steps.dart';
 import 'package:openring_v1/src/storage/history_models.dart';
+import 'package:openring_v1/src/storage/motion_models.dart';
 import 'package:openring_v1/src/storage/storage_repository.dart';
 
 void main() {
@@ -135,6 +137,18 @@ class _FakeStorage implements OpenRingStorage {
   }) async {}
 
   @override
+  Future<void> appendMotionSample({
+    required int sessionId,
+    required AccelerometerReading reading,
+    DateTime? receivedAt,
+  }) async {}
+
+  @override
+  Future<MotionSessionRecording?> loadLatestMotionSession({
+    required String deviceId,
+  }) async => null;
+
+  @override
   Future<void> setLastConnectedDevice({
     required String deviceId,
     String? name,
@@ -146,6 +160,26 @@ class _FakeStorage implements OpenRingStorage {
     required String deviceId,
     String? name,
     DateTime? seenAt,
+  }) async {}
+
+  @override
+  Future<MotionSessionSummary> startMotionSession({
+    required String deviceId,
+    required String name,
+    DateTime? startedAt,
+  }) async {
+    return MotionSessionSummary(
+      id: 1,
+      deviceId: deviceId,
+      name: name,
+      startedAt: startedAt ?? DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> stopMotionSession({
+    required int sessionId,
+    DateTime? endedAt,
   }) async {}
 }
 

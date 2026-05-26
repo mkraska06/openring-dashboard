@@ -2,12 +2,14 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../protocol/battery.dart';
+import '../protocol/accelerometer.dart';
 import '../protocol/commands.dart';
 import '../protocol/hr_log.dart';
 import '../protocol/real_time.dart';
 import '../protocol/steps.dart';
 import 'app_database.dart';
 import 'history_models.dart';
+import 'motion_models.dart';
 
 const lastConnectedDeviceSettingKey = 'last_connected_device_id';
 
@@ -51,6 +53,24 @@ abstract class OpenRingStorage {
   Future<void> insertStepEntries({
     required String deviceId,
     required List<StepEntry> entries,
+  });
+
+  Future<MotionSessionSummary> startMotionSession({
+    required String deviceId,
+    required String name,
+    DateTime? startedAt,
+  });
+
+  Future<void> appendMotionSample({
+    required int sessionId,
+    required AccelerometerReading reading,
+    DateTime? receivedAt,
+  });
+
+  Future<void> stopMotionSession({required int sessionId, DateTime? endedAt});
+
+  Future<MotionSessionRecording?> loadLatestMotionSession({
+    required String deviceId,
   });
 }
 
@@ -284,6 +304,104 @@ class DriftOpenRingStorage implements OpenRingStorage {
           ),
       ], mode: InsertMode.insertOrIgnore);
     });
+  }
+
+  @override
+  Future<MotionSessionSummary> startMotionSession({
+    required String deviceId,
+    required String name,
+    DateTime? startedAt,
+  }) async {
+    final time = (startedAt ?? DateTime.now()).toUtc();
+    await upsertDevice(deviceId: deviceId, seenAt: time);
+    final sessionId = await _db
+        .into(_db.motionSessions)
+        .insert(
+          MotionSessionsCompanion.insert(
+            deviceId: deviceId,
+            name: name,
+            startedAt: time,
+          ),
+        );
+    return MotionSessionSummary(
+      id: sessionId,
+      deviceId: deviceId,
+      name: name,
+      startedAt: time.toLocal(),
+    );
+  }
+
+  @override
+  Future<void> appendMotionSample({
+    required int sessionId,
+    required AccelerometerReading reading,
+    DateTime? receivedAt,
+  }) {
+    return _db
+        .into(_db.motionSamples)
+        .insert(
+          MotionSamplesCompanion.insert(
+            sessionId: sessionId,
+            receivedAt: (receivedAt ?? DateTime.now()).toUtc(),
+            accX: reading.accX,
+            accY: reading.accY,
+            accZ: reading.accZ,
+          ),
+        );
+  }
+
+  @override
+  Future<void> stopMotionSession({required int sessionId, DateTime? endedAt}) {
+    return (_db.update(
+      _db.motionSessions,
+    )..where((session) => session.id.equals(sessionId))).write(
+      MotionSessionsCompanion(
+        endedAt: Value((endedAt ?? DateTime.now()).toUtc()),
+      ),
+    );
+  }
+
+  @override
+  Future<MotionSessionRecording?> loadLatestMotionSession({
+    required String deviceId,
+  }) async {
+    final sessions =
+        await (_db.select(_db.motionSessions)
+              ..where((row) => row.deviceId.equals(deviceId))
+              ..orderBy([(row) => OrderingTerm.desc(row.startedAt)]))
+            .get();
+
+    for (final session in sessions) {
+      final sampleRows =
+          await (_db.select(_db.motionSamples)
+                ..where((sample) => sample.sessionId.equals(session.id))
+                ..orderBy([(sample) => OrderingTerm.asc(sample.receivedAt)]))
+              .get();
+      if (sampleRows.isEmpty) continue;
+
+      return MotionSessionRecording(
+        session: MotionSessionSummary(
+          id: session.id,
+          deviceId: session.deviceId,
+          name: session.name,
+          startedAt: session.startedAt.toLocal(),
+          endedAt: session.endedAt?.toLocal(),
+        ),
+        samples: [
+          for (final sample in sampleRows)
+            MotionSamplePoint(
+              receivedAt: sample.receivedAt.toLocal(),
+              reading: AccelerometerReading(
+                accX: sample.accX,
+                accY: sample.accY,
+                accZ: sample.accZ,
+              ),
+            ),
+        ],
+      );
+    }
+
+    return null;
   }
 }
 

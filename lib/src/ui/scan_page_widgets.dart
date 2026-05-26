@@ -1,15 +1,18 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_ble/universal_ble.dart' hide BleService;
 import 'package:window_manager/window_manager.dart';
 
 import '../ble/ble_service.dart';
 import '../protocol/accelerometer.dart';
+import '../protocol/activity.dart';
 import '../protocol/battery.dart';
 import '../protocol/commands.dart';
 import '../protocol/hr_log.dart';
 import '../protocol/hr_settings.dart';
 import '../protocol/real_time.dart';
 import '../protocol/steps.dart';
+import '../storage/motion_models.dart';
 
 class ScanPageTitleBar extends StatelessWidget {
   const ScanPageTitleBar({
@@ -363,12 +366,20 @@ class AccelerometerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String mainText;
+    final String? scaleText;
     if (isRunning && reading != null) {
       mainText = 'X=${reading!.accX}  Y=${reading!.accY}  Z=${reading!.accZ}';
+      scaleText =
+          'X=${reading!.xG.toStringAsFixed(3)} g  '
+          'Y=${reading!.yG.toStringAsFixed(3)} g  '
+          'Z=${reading!.zG.toStringAsFixed(3)} g  '
+          '|a|=${reading!.magnitudeG.toStringAsFixed(3)} g';
     } else if (isRunning) {
       mainText = 'Warte auf Daten...';
+      scaleText = null;
     } else {
       mainText = '\u2014';
+      scaleText = null;
     }
 
     return Card(
@@ -388,6 +399,11 @@ class AccelerometerCard extends StatelessWidget {
                     mainText,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
+                  if (scaleText != null)
+                    Text(
+                      scaleText,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   if (isRunning)
                     Text(
                       '~1 Hz (Stock Firmware)',
@@ -410,6 +426,284 @@ class AccelerometerCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class MotionLabCard extends StatelessWidget {
+  const MotionLabCard({
+    super.key,
+    required this.sessionName,
+    required this.recording,
+    required this.isRecording,
+    required this.canRecord,
+    required this.onNameChanged,
+    required this.onRecord,
+    required this.onStop,
+  });
+
+  final String sessionName;
+  final MotionSessionRecording? recording;
+  final bool isRecording;
+  final bool canRecord;
+  final ValueChanged<String> onNameChanged;
+  final Future<void> Function() onRecord;
+  final Future<void> Function() onStop;
+
+  @override
+  Widget build(BuildContext context) {
+    final samples = recording?.samples ?? const <MotionSamplePoint>[];
+    final label = isRecording
+        ? 'Aufnahme laeuft'
+        : recording == null
+        ? 'Keine Motion-Session'
+        : 'Letzte Session';
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.multiline_chart, color: Colors.deepOrange),
+                const SizedBox(width: 8),
+                const Text('Motion Lab'),
+                const Spacer(),
+                Text(
+                  '$label | ${samples.length} Samples',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    key: ValueKey(recording?.session.id ?? 'motion-name'),
+                    initialValue: sessionName,
+                    enabled: !isRecording,
+                    onChanged: onNameChanged,
+                    decoration: const InputDecoration(
+                      labelText: 'Sessionname',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (isRecording)
+                  FilledButton.icon(
+                    onPressed: onStop,
+                    icon: const Icon(Icons.stop),
+                    label: const Text('Stop'),
+                  )
+                else
+                  FilledButton.icon(
+                    onPressed: canRecord ? onRecord : null,
+                    icon: const Icon(Icons.fiber_manual_record),
+                    label: const Text('Record'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 230,
+              child: samples.isEmpty
+                  ? const Center(child: Text('Noch keine Motion-Samples.'))
+                  : MotionSessionChart(samples: samples),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MotionSessionChart extends StatelessWidget {
+  const MotionSessionChart({super.key, required this.samples});
+
+  final List<MotionSamplePoint> samples;
+
+  @override
+  Widget build(BuildContext context) {
+    final start = samples.first.receivedAt;
+    final spotsX = _spots(start, (sample) => sample.reading.xG);
+    final spotsY = _spots(start, (sample) => sample.reading.yG);
+    final spotsZ = _spots(start, (sample) => sample.reading.zG);
+    final spotsMagnitude = _spots(start, (sample) => sample.reading.magnitudeG);
+    final values = [
+      ...spotsX.map((spot) => spot.y),
+      ...spotsY.map((spot) => spot.y),
+      ...spotsZ.map((spot) => spot.y),
+      ...spotsMagnitude.map((spot) => spot.y),
+    ];
+    final minY = values.reduce((a, b) => a < b ? a : b);
+    final maxY = values.reduce((a, b) => a > b ? a : b);
+    final padding = (maxY - minY).abs() < 0.1 ? 0.2 : (maxY - minY) * 0.12;
+    final chartMaxX = spotsMagnitude.last.x <= 0 ? 1.0 : spotsMagnitude.last.x;
+    final xInterval = _motionTimeInterval(chartMaxX);
+    final yInterval = _motionGInterval(minY - padding, maxY + padding);
+    final axisStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: LineChart(
+            duration: Duration.zero,
+            LineChartData(
+              minX: 0,
+              maxX: chartMaxX,
+              minY: minY - padding,
+              maxY: maxY + padding,
+              clipData: const FlClipData.all(),
+              gridData: FlGridData(
+                drawVerticalLine: true,
+                getDrawingHorizontalLine: (_) => FlLine(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  strokeWidth: 1,
+                ),
+                getDrawingVerticalLine: (_) => FlLine(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  strokeWidth: 1,
+                ),
+              ),
+              titlesData: FlTitlesData(
+                topTitles: const AxisTitles(),
+                rightTitles: const AxisTitles(),
+                leftTitles: AxisTitles(
+                  axisNameWidget: Text('g', style: axisStyle),
+                  axisNameSize: 18,
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: yInterval,
+                    getTitlesWidget: (value, meta) => Text(
+                      value.toStringAsFixed(1),
+                      maxLines: 1,
+                      overflow: TextOverflow.visible,
+                      softWrap: false,
+                      style: axisStyle,
+                    ),
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 28,
+                    interval: xInterval,
+                    getTitlesWidget: (value, meta) {
+                      final edgePadding = xInterval * 0.45;
+                      if (value <= edgePadding ||
+                          value >= chartMaxX - edgePadding) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '${value.toStringAsFixed(0)} s',
+                          maxLines: 1,
+                          softWrap: false,
+                          style: axisStyle,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
+              ),
+              lineTouchData: const LineTouchData(enabled: false),
+              lineBarsData: [
+                _line(spotsX, Colors.red, dashed: false),
+                _line(spotsY, Colors.green, dashed: false),
+                _line(spotsZ, Colors.blue, dashed: false),
+                _line(spotsMagnitude, Colors.black87, dashed: true),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Wrap(
+          spacing: 12,
+          children: [
+            _MotionLegend(color: Colors.red, label: 'X'),
+            _MotionLegend(color: Colors.green, label: 'Y'),
+            _MotionLegend(color: Colors.blue, label: 'Z'),
+            _MotionLegend(color: Colors.black87, label: '|a|'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  List<FlSpot> _spots(
+    DateTime start,
+    double Function(MotionSamplePoint sample) valueFor,
+  ) {
+    return [
+      for (final sample in samples)
+        FlSpot(
+          sample.receivedAt.difference(start).inMilliseconds / 1000,
+          valueFor(sample),
+        ),
+    ];
+  }
+
+  LineChartBarData _line(
+    List<FlSpot> spots,
+    Color color, {
+    required bool dashed,
+  }) {
+    return LineChartBarData(
+      spots: spots,
+      color: color,
+      barWidth: dashed ? 2.8 : 2,
+      dashArray: dashed ? [6, 4] : null,
+      dotData: FlDotData(show: spots.length <= 20),
+      isCurved: false,
+    );
+  }
+
+  double _motionTimeInterval(double maxSeconds) {
+    if (maxSeconds <= 15) return 5;
+    if (maxSeconds <= 45) return 10;
+    if (maxSeconds <= 120) return 20;
+    if (maxSeconds <= 300) return 60;
+    return 120;
+  }
+
+  double _motionGInterval(double minY, double maxY) {
+    final span = (maxY - minY).abs();
+    if (span <= 1) return 0.25;
+    if (span <= 3) return 0.5;
+    if (span <= 8) return 1;
+    return 2;
+  }
+}
+
+class _MotionLegend extends StatelessWidget {
+  const _MotionLegend({required this.color, required this.label});
+
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 12, height: 3, color: color),
+        const SizedBox(width: 4),
+        Text(label),
+      ],
     );
   }
 }
@@ -504,20 +798,25 @@ class StepsCard extends StatelessWidget {
   const StepsCard({
     super.key,
     required this.steps,
+    required this.dailyActivity,
     required this.isLoading,
     required this.onRequest,
   });
 
   final List<StepEntry>? steps;
+  final DailyActivitySnapshot? dailyActivity;
   final bool isLoading;
   final Future<void> Function(DateTime day) onRequest;
 
   @override
   Widget build(BuildContext context) {
-    final totalSteps = steps?.fold<int>(0, (sum, e) => sum + e.steps) ?? 0;
-    final totalCal = steps?.fold<int>(0, (sum, e) => sum + e.calories) ?? 0;
-    final totalDist =
+    final historySteps = steps?.fold<int>(0, (sum, e) => sum + e.steps) ?? 0;
+    final historyCal = steps?.fold<int>(0, (sum, e) => sum + e.calories) ?? 0;
+    final historyDist =
         steps?.fold<int>(0, (sum, e) => sum + e.distanceMeters) ?? 0;
+    final totalSteps = dailyActivity?.steps ?? historySteps;
+    final totalCal = dailyActivity?.calories ?? historyCal;
+    final totalDist = dailyActivity?.distanceMeters ?? historyDist;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -544,11 +843,11 @@ class StepsCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (steps != null) ...[
+            if (dailyActivity != null || steps != null) ...[
               const SizedBox(height: 8),
-              if (steps!.isEmpty)
+              if (dailyActivity == null && steps!.isEmpty)
                 const Text('Keine Daten f\u00fcr diesen Tag.')
-              else
+              else ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -557,6 +856,15 @@ class StepsCard extends StatelessWidget {
                     StatColumn(label: 'Distanz', value: '${totalDist}m'),
                   ],
                 ),
+                if (dailyActivity != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      'Aktueller Tagesstand',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+              ],
             ],
           ],
         ),
@@ -707,101 +1015,6 @@ class UtilityCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class DebugLogPanel extends StatefulWidget {
-  const DebugLogPanel({super.key, required this.lines});
-
-  final List<String> lines;
-
-  @override
-  State<DebugLogPanel> createState() => _DebugLogPanelState();
-}
-
-class _DebugLogPanelState extends State<DebugLogPanel> {
-  final _scrollController = ScrollController();
-
-  @override
-  void didUpdateWidget(covariant DebugLogPanel oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.lines.length > oldWidget.lines.length) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-            child: Text(
-              'Debug Log (${widget.lines.length})',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const Divider(height: 1, color: Colors.white24),
-          Expanded(
-            child: widget.lines.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Keine Pakete.',
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
-                    ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(8),
-                    itemCount: widget.lines.length,
-                    itemBuilder: (_, i) {
-                      final line = widget.lines[i];
-                      final isTx = line.startsWith('[TX]');
-                      return Text(
-                        line,
-                        style: TextStyle(
-                          fontFamily: 'Consolas',
-                          fontFamilyFallback: const [
-                            'monospace',
-                            'Courier New',
-                          ],
-                          fontSize: 11,
-                          color: isTx
-                              ? Colors.lightGreenAccent
-                              : Colors.cyanAccent,
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
       ),
     );
   }
