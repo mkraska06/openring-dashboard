@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="OpenRing Desktop logo" width="900">
+</p>
+
 # OpenRing Desktop
 
 OpenRing Desktop is an experimental desktop app for Colmi-compatible smart rings. 
@@ -56,4 +60,3 @@ storage behavior, is covered by tests.
 OpenRing is not a medical device and must not be used for diagnosis, treatment,
 or emergency monitoring. Values shown by the app depend on consumer hardware,
 reverse-engineered protocol behavior, and ongoing experimental software.
-
