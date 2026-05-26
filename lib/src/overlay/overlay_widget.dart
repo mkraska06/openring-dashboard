@@ -23,7 +23,9 @@ class OverlayWidget extends ConsumerWidget {
     final spo2Reading = pageState.realTimeReadings[ReadingType.spo2];
     final battery = pageState.battery;
     final steps = pageState.steps;
-    final totalSteps = steps?.fold<int>(0, (sum, e) => sum + e.steps) ?? 0;
+    final dailyActivity = pageState.dailyActivity;
+    final totalSteps =
+        dailyActivity?.steps ?? steps?.fold<int>(0, (sum, e) => sum + e.steps);
 
     final isConnected = bleStatus == BleConnectionStatus.connected;
 
@@ -129,7 +131,7 @@ class OverlayWidget extends ConsumerWidget {
                 _VitalRow(
                   icon: Icons.directions_walk,
                   iconColor: Colors.orangeAccent,
-                  value: steps != null ? '$totalSteps' : '--',
+                  value: totalSteps != null ? '$totalSteps' : '--',
                   unit: '',
                   valueColor: Colors.white,
                 ),
