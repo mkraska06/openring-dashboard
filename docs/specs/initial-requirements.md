@@ -75,7 +75,7 @@ Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer,
 | HV-02 | Das System speichert jeden empfangenen HRV-Messwert mit Zeitstempel in der lokalen Datenbank. | Mittel |
 | HV-03 | Das System stellt den HRV-Verlauf eines ausgewählten Tages graphisch dar.                     | Niedrig |
 | HV-04 | Das System zeigt eine Meldung an, wenn der verbundene Ring keine HRV-Daten liefert.           | Niedrig |
-| HV-04 | Das System synchronisiert die auf dem Ring gespeicherten HRV-Logdaten bei Verbindungsaufbau.  | Mittel |
+| HV-05 | Das System synchronisiert die auf dem Ring gespeicherten HRV-Logdaten bei Verbindungsaufbau.  | Mittel |
 
 ### 2.4 Blutsauerstoff (SpO₂)
 
@@ -100,8 +100,8 @@ Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer,
 | SA-07 | Das System zeigt die Dauer der REM-Schlafphase an.            | Niedrig |
 | SA-08 | Das System zeigt die Anzahl der nächtlichen Wachphasen an.    | Niedrig |
 | SA-09 | Das System stellt den Schlafverlauf einer Nacht graphisch dar. | Mittel |
-| SA-09 | Das System stellt den Schlafverlauf farblich dar.             | Niedrig |
-| SA-10 | Das System zeigt einen Schlafüberblick der letzten 7 Tage an. | Niedrig |
+| SA-10 | Das System stellt den Schlafverlauf farblich dar.             | Niedrig |
+| SA-11 | Das System zeigt einen Schlafüberblick der letzten 7 Tage an. | Niedrig |
 
 ### 2.6 Aktivitätstracking
 
@@ -139,7 +139,7 @@ Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer,
 | BA-01 | Das System zeigt den aktuellen Batteriestand des Rings an.                       | Hoch |
 | BA-02 | Das System zeigt den Ladestatus des Rings als „Lädt" an.                         | Mittel |
 | BA-03 | Das System zeigt eine visuelle Warnung, wenn der Batteriestand unter 20 % fällt. | Mittel |
-| BA-03 | Das System zeigt den Ladeverlauf des Rings an.                                   | Mittel |
+| BA-04 | Das System zeigt den Ladeverlauf des Rings an.                                   | Mittel |
 
 ### 2.10 Gerätefunktionen
 
@@ -147,7 +147,7 @@ Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer,
 |----|------------------------------------------------------------------------|-----------|
 | GF-01 | Der Nutzer kann die LED des Rings zum Blinken bringen (Find-Funktion). | Mittel |
 | GF-02 | Der Nutzer kann den Ring neu starten.                                  | Niedrig |
-| GF-02 | Der Nutzer kann den Ring reseten.                                      | Niedrig |
+| GF-03 | Der Nutzer kann den Ring reseten.                                      | Niedrig |
 
 ### 2.11 Datenspeicherung & Export
 
@@ -206,7 +206,6 @@ Das Overlay wird als **integrierter Modus innerhalb der Hauptanwendung** realisi
 |-------|------------------------------------------|-----------|
 | NF-01 | Das System ist auf Windows 11 lauffähig. | Hoch |
 | NF-02 | Das System ist auf Linux lauffähig.      | Mittel |
-| NF-03 | Das System ist auf iOS lauffähig.        | Niedrig |
 
 ### 4.2 Leistung
 
@@ -230,7 +229,6 @@ Das Overlay wird als **integrierter Modus innerhalb der Hauptanwendung** realisi
 |----|-------------|-----------|
 | NF-09 | Das Hauptfenster der Anwendung verwendet eine Seitenleiste zur Navigation zwischen den Funktionsbereichen. | Mittel |
 | NF-10 | Das System ist vollständig per Tastatur bedienbar. | Niedrig |
-
 
 ## 5. Technische Rahmenbedingungen
 

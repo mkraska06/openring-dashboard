@@ -90,7 +90,7 @@ blockwise live heart-rate data.
 ## Implementation Reference
 
 The display timestamp adjustment is implemented in
-`lib/src/storage/storage_repository.dart`.
+[lib/src/storage/storage_repository.dart](../lib/src/storage/storage_repository.dart).
 
 Relevant functions:
 
@@ -108,4 +108,4 @@ Relevant constants:
   timing reference
 
 The behavior is covered by focused tests in
-`test/storage/storage_repository_test.dart`.
+[test/storage/storage_repository_test.dart](../test/storage/storage_repository_test.dart).

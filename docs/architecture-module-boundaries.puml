@@ -1,0 +1,48 @@
+@startuml OpenRing-Module-Boundaries
+' ===========================================================
+' Module boundaries: OpenRing Desktop
+' Shows ownership between UI, overlay, history, storage, BLE,
+' protocol parsing, and measurement scheduling.
+' ===========================================================
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+component "UI\nlib/src/ui" as UI
+component "Overlay\nlib/src/overlay" as Overlay
+component "History\nlib/src/history" as History
+component "Measurement Scheduler\nlib/src/measurements" as Measurements
+component "Storage\nlib/src/storage" as Storage
+component "BLE Service\nlib/src/ble" as BLE
+component "Protocol\nlib/src/protocol" as Protocol
+component "Colmi Ring" as Ring
+
+UI --> Measurements : desired measurements
+Overlay --> Measurements : lightweight live profile
+Measurements --> UI : latest values + freshness
+Measurements --> BLE : serialized start/stop commands
+
+UI --> BLE : scan/connect/disconnect via use cases
+UI --> Storage : load persisted state
+History --> Storage : load history models
+
+BLE --> Protocol : parse notifications
+Protocol --> BLE : build command packets
+BLE --> Ring : Nordic UART BLE
+Ring --> BLE : notifications
+
+Measurements --> Storage : persist live readings
+BLE --> Storage : persist device/battery/log data\nthrough controller/repository
+
+note right of Protocol
+Pure deterministic packet
+builders and parsers.
+end note
+
+note bottom of UI
+Widgets should not send
+BLE commands directly.
+end note
+
+@enduml

@@ -1,0 +1,84 @@
+@startuml OpenRing-Database-Schema
+' ===========================================================
+' Database schema: OpenRing Desktop
+' Local SQLite schema used through Drift.
+' ===========================================================
+
+skinparam backgroundColor #FFFFFF
+skinparam linetype ortho
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #F7FAFC
+    BorderColor #2B4F81
+    ArrowColor #2B4F81
+}
+hide circle
+hide methods
+
+entity "devices" as devices {
+    * device_id : text <<PK>>
+    --
+    name : text?
+    last_seen_at : datetime
+    last_connected_at : datetime?
+}
+
+entity "app_settings" as app_settings {
+    * key : text <<PK>>
+    --
+    value : text
+}
+
+entity "vital_samples" as vital_samples {
+    * id : integer <<PK>>
+    --
+    device_id : text <<FK>>
+    kind : text
+    value : integer
+    unit : text
+    measured_at : datetime
+    source : text
+    created_at : datetime
+    --
+    unique(device_id, kind, measured_at, source)
+}
+
+entity "battery_snapshots" as battery_snapshots {
+    * id : integer <<PK>>
+    --
+    device_id : text <<FK>>
+    level : integer
+    is_charging : boolean
+    measured_at : datetime
+    --
+    unique(device_id, measured_at)
+}
+
+entity "activity_intervals" as activity_intervals {
+    * id : integer <<PK>>
+    --
+    device_id : text <<FK>>
+    started_at : datetime
+    steps : integer
+    calories : integer
+    distance_meters : integer
+    source : text
+    --
+    unique(device_id, started_at)
+}
+
+devices ||--o{ vital_samples
+devices ||--o{ battery_snapshots
+devices ||--o{ activity_intervals
+
+note right of app_settings
+Stores small app-level values,
+for example last_connected_device_id.
+end note
+
+note bottom of vital_samples
+kind examples: heart_rate, spo2, hrv
+source examples: live, ring_log
+end note
+
+@enduml
