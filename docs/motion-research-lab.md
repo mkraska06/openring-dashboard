@@ -1,6 +1,6 @@
 # Motion Research Lab
 
-Diese Notiz beschreibt den aktuellen Zwischenstand der Bewegungsdaten-Arbeit in
+Diese Notiz beschreibt den aktuellen Zwischenstand der Beschleunigungsdaten-Arbeit in
 OpenRing. Sie soll verständlich machen, welche Daten der COLMI-Ring sendet, wie
 OpenRing sie aktuell interpretiert, was bereits implementiert wurde und welche
 Schritte als Nächstes sinnvoll sind.
@@ -28,7 +28,7 @@ Damit sollen später Fragen beantwortet werden wie:
 Der aktuelle Stand ist bewusst ein Research-Werkzeug. Es ist noch keine fertige
 Aktivitäts- oder Gestenerkennung.
 
-## Grundlagen: Was misst der Bewegungssensor?
+## Grundlagen: Was misst der Beschleunigungssensor?
 
 Der Ring sendet rohe Daten eines 3-Achsen-Beschleunigungssensors. Pro Sample
 kommen drei Werte an:
@@ -71,6 +71,15 @@ Z = -0.13 g
 Wenn der Ring anders gedreht wird, wandert dieser Anteil auf eine andere Achse.
 Bei schneller Bewegung entstehen zusätzliche Beschleunigungen. Dann kann der
 Betrag deutlich über oder unter `1 g` liegen.
+
+Wichtig ist die begriffliche Trennung:
+
+- Der Sensor ist ein Beschleunigungssensor, kein direkter Bewegungssensor.
+- Er misst nicht direkt Geschwindigkeit, Position oder Drehzahl.
+- Bewegung, Lagewechsel oder Aktivität sind Interpretationen, die man aus den
+  Beschleunigungswerten ableiten kann.
+- Ein Gyroskop würde Drehgeschwindigkeit messen. Ein solcher Datenkanal wurde
+  im aktuellen BLE-Pfad bisher nicht beobachtet.
 
 ## Rohdaten aus dem COLMI-Protokoll
 
@@ -352,6 +361,69 @@ Achsen den Messbereich erreicht haben, zum Beispiel:
 
 Das passt zu schnellen oder stärkeren Bewegungen.
 
+## Erkenntnis aus dem Plattenteller-Versuch vom 2026-05-27
+
+Als praktischer Versuch wurde der Ring auf einen Plattenteller gelegt und mit
+`33 rpm` sowie `45 rpm` jeweils in Mittel- und Außenposition aufgezeichnet.
+
+Verwendete Sessions:
+
+| Session | Samples | X g | Y g | Z g | Betrag |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `flach_turntable_33_center` | 20 | `-1.047` | `-0.064` | `-0.143` | `1.058 g` |
+| `flach_turntable_33_outer` | 20 | `-1.032` | `-0.222` | `-0.176` | `1.070 g` |
+| `flach_turntable_45_center` | 20 | `-1.036` | `-0.052` | `-0.203` | `1.057 g` |
+| `flach_turntable_45_outer` | 20 | `-1.026` | `0.040` | `-0.383` | `1.096 g` |
+
+Innerhalb jeder dieser Sessions waren die 20 Samples identisch. Auch beim
+Wechsel von `33 rpm` auf `45 rpm` zeigte sich im aktuellen Datenpfad kein
+klarer zeitlicher Verlauf der X-/Y-/Z-Achsen.
+
+Das ist eine wichtige Erkenntnis: Der Versuch zeigt nicht, dass der
+Beschleunigungssensor keine Beschleunigung messen kann. Er zeigt, dass die
+über BLE beobachteten `0xA1/0x03`-Werte bei ruhiger, gleichmäßiger Bewegung
+kaum oder gar nicht aktualisiert werden.
+
+Physikalisch ist ein Teil davon plausibel. Wenn der Ring fest auf dem Teller
+liegt, rotiert sein Sensorkoordinatensystem mit. Die Schwerkraft bleibt im
+Ring-Koordinatensystem nahezu konstant. Eine gleichmäßige Rotation erzeugt
+zwar Zentripetalbeschleunigung:
+
+```text
+a = omega^2 * r
+```
+
+Im mitrotierenden Sensorkoordinatensystem ist auch dieser Anteil aber weitgehend
+konstant, solange der Ring nicht kippt oder rutscht. Deshalb entsteht keine
+schöne Sinuskurve in den Achsenwerten.
+
+Zusätzlich spricht das Verhalten der Stock-Firmware für einen eingeschränkten
+oder gefilterten Datenpfad:
+
+- langsame oder sehr vorsichtige Bewegungen ändern die Werte häufig nicht,
+- gleichmäßige Drehbewegung auf dem Plattenteller erzeugt keinen sichtbaren
+  Zeitverlauf,
+- ruckartige oder schnellere Bewegungen erzeugen dagegen deutliche Änderungen,
+- einzelne starke Bewegungen können sogar zum Clipping führen.
+
+Die vorsichtige Interpretation lautet daher:
+
+> Der Ring liefert über den aktuell verwendeten BLE-Pfad keine kontinuierlichen
+> hochaufgelösten Rohdaten des Beschleunigungssensors. Die Werte wirken
+> firmwareseitig gedrosselt, gefiltert oder schwellwertbasiert aktualisiert.
+
+Für weitere Auswertungen muss deshalb klar unterschieden werden zwischen:
+
+```text
+physikalische Fähigkeit des Beschleunigungssensors
+vs.
+tatsächlich über BLE sichtbare Daten der COLMI-Stock-Firmware
+```
+
+Der Plattenteller eignet sich damit weniger zur direkten Drehzahlerkennung. Er
+ist aber nützlich, um zu zeigen, dass eine gleichmäßige Rotation nicht
+automatisch als periodisches Signal im Accelerometer-Stream sichtbar wird.
+
 ## Kalibrierstand vom 2026-05-26
 
 Die folgenden Kalibrieraufnahmen wurden mit einem COLMI R03 gemacht. Sie
@@ -444,6 +516,207 @@ Das Motion Lab ist ein erster Forschungsstand. Es gibt noch wichtige Grenzen:
 - Es gibt noch keinen Session-Browser.
 - Es gibt noch keine automatische Bewegungs- oder Gestenerkennung.
 - Die Subtypen `0xA1/0x01` und `0xA1/0x02` sind noch nicht dekodiert.
+
+## Gesture-Datenbasis fuer gehaltene Handpositionen
+
+Nach den ersten Accelerometer- und Achsentests wurde das Motion Lab als
+Gesture-Datenbasis erweitert. Das Ziel war nicht, schnelle Bewegungen oder
+Drehgeschwindigkeit zu erkennen, sondern stabile Handpositionen zu messen.
+
+Der Grund dafuer ist die beobachtete Sample-Rate:
+
+```text
+ungefaehr 1 Sample pro Sekunde
+```
+
+Bei dieser Rate sind kurze Ereignisse wie Doppelklopfen oder schnelle
+Wischbewegungen nicht verlaesslich. Eine ruhig gehaltene Lage ist dagegen gut
+sichtbar, weil die Gravitation stabil auf die Ringachsen faellt.
+
+### Presets
+
+Das Motion Lab bietet dafuer benannte Presets. Sie setzen den Sessionnamen und
+machen spaeter die Gruppierung moeglich.
+
+Legacy/Basic:
+
+```text
+gesture_palm_up
+gesture_palm_side
+gesture_palm_down
+gesture_double_tap
+```
+
+Open/Fist-Gesture-Space:
+
+```text
+gesture_open_down
+gesture_open_side
+gesture_open_up
+gesture_open_vertical
+gesture_fist_down
+gesture_fist_side
+gesture_fist_up
+gesture_fist_vertical
+```
+
+Die Sessionnamen sind bewusst die Labels. Es wurde keine neue Datenbanktabelle
+fuer Gesten eingefuehrt. Dadurch bleibt das Motion Lab einfach: Eine Aufnahme
+ist weiterhin nur eine Motion-Session mit Samples.
+
+### Aufnahmeablauf
+
+Fuer jede Lage wurde folgender Ablauf verwendet:
+
+1. Accelerometer-Stream starten.
+2. Preset im Motion Lab auswaehlen.
+3. Hand in die gewuenschte Position bringen.
+4. Kurz ruhig werden lassen.
+5. `Record` starten.
+6. Position 10 bis 20 Sekunden halten.
+7. `Stop` druecken.
+8. Bei auffaelligen Werten oder Startbewegung erneut aufnehmen.
+
+Wichtig fuer vergleichbare Daten:
+
+- Ring am selben Finger tragen.
+- Ring in derselben Ausrichtung tragen.
+- Hand moeglichst ruhig halten.
+- Aufnahme nicht waehrend des Hinbewegens starten.
+- Anfangs- und Endbewegungen bei der Bewertung beachten.
+
+Eine typische Session enthaelt bei der beobachteten Firmware nur etwa 10 bis 30
+Samples. Deshalb ist jedes Sample relativ wichtig.
+
+### Auswertung pro Session
+
+OpenRing berechnet fuer jede Session:
+
+```text
+Sampleanzahl
+Dauer
+Min/Max/Avg fuer xG
+Min/Max/Avg fuer yG
+Min/Max/Avg fuer zG
+Min/Max/Avg fuer |a|
+Streuung pro Achse
+durchschnittliche Sample-zu-Sample-Aenderung
+Stabilitaet
+Roll-Winkel atan2(yG, zG)
+```
+
+Eine gehaltene Lage gilt als stabil, wenn genug Samples vorhanden sind, `|a|`
+im plausiblen Ruhebereich liegt, die Achsen nicht zu stark streuen und die
+durchschnittliche Sample-zu-Sample-Aenderung klein ist.
+
+### Gruppenanalyse
+
+Die neuen Presets werden in zwei Dimensionen gruppiert:
+
+```text
+Handform: open / fist
+Lage:     down / side / up / vertical
+```
+
+Die Analyse vergleicht unter anderem:
+
+- `open` vs. `fist` bei gleicher Lage
+- `side` vs. `vertical`
+- Roll-Trennung von `down`, `side`, `up`
+
+Der Ergebnisstatus ist:
+
+```text
+klar trennbar
+unsicher
+mehr Daten
+```
+
+`klar trennbar` bedeutet: Die Gruppen sind stabil und der Abstand zwischen den
+Mittelwerten ist deutlich groesser als die Streuung.
+
+### Aktuelle gemessene Gesture-Zentren
+
+Aus den aktuellen Aufnahmen wurden die folgenden stabilen Zentren fuer den
+Gesture Hub verwendet. Die Werte sind `g`-Werte.
+
+| Session | xG | yG | zG | |a| | Roll |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `gesture_open_down` | `+0.101` | `-1.041` | `-0.004` | ca. `1.046` | `-90.1 deg` |
+| `gesture_open_side` | `-0.141` | `-0.086` | `+0.841` | ca. `0.857` | `-5.9 deg` |
+| `gesture_open_up` | `-0.160` | `+0.907` | `-0.041` | ca. `0.922` | `+92.6 deg` |
+| `gesture_open_vertical` | `-1.023` | `-0.179` | `-0.072` | ca. `1.041` | `-108.0 deg` |
+| `gesture_fist_down` | `+0.938` | `-0.131` | `+0.026` | ca. `0.948` | `-83.6 deg` |
+| `gesture_fist_side` | `-0.121` | `+0.107` | `+0.799` | ca. `0.815` | `+7.4 deg` |
+| `gesture_fist_up` | `-1.015` | `-0.190` | `-0.149` | ca. `1.044` | `-129.5 deg` |
+| `gesture_fist_vertical` | `-0.027` | `-1.068` | `+0.008` | ca. `1.068` | `-89.6 deg` |
+
+Die daraus abgeleitete Produktentscheidung:
+
+- `open_down`, `open_side`, `open_up` sind die Hauptrotation fuer Controls.
+- `open_vertical` ist der Moduswechsel.
+- `fist_down` wird als Linksklick im Maus-Control genutzt.
+- Die anderen Fist-Lagen bleiben Forschungsdaten und werden in V1 nicht als
+  Richtungen verwendet.
+
+### Warum `open_*` und `palm_*` beide existieren
+
+`gesture_palm_up/side/down` waren die erste Basis fuer gehaltene Handlagen.
+Spaeter wurde die Datenbasis praezisiert:
+
+```text
+open = offene Hand
+fist = Faust
+```
+
+Darum gibt es jetzt `gesture_open_down/side/up`. Inhaltlich sind die Open-Lagen
+die sauberere, explizitere Variante fuer den aktuellen Gesture Hub. Die
+`palm_*`-Presets bleiben als Legacy/Basic-Aufnahmen nutzbar und stoeren nicht,
+weil jede Session ueber ihren Namen gruppiert wird.
+
+### Bedeutung der Ringausrichtung
+
+Die Werte gelten nur unter der Annahme:
+
+- Ring am selben Finger,
+- Ring nicht verdreht getragen,
+- gleiche Hand wie bei der Kalibrierung,
+- gleiche Orientierung der Ringoeffnung.
+
+Wenn der Ring andersherum getragen wird, koennen sich Vorzeichen und
+Mittelwerte verschieben. Dann wuerde die aktuelle Klassifikation schlechter
+passen. Langfristig waere eine nutzerspezifische Kalibrierung sinnvoll.
+
+## Gesture Hub als Ergebnis der Motion-Arbeit
+
+Aus den Motion-Lab-Daten entstand der aktuelle Gesture Hub. Er nutzt die
+gemessenen Zentren aus den gehaltenen Positionen.
+
+Aktuelle Controls:
+
+```text
+Scrollen
+Lautstaerke
+Maus
+```
+
+Der Gesture Hub verwendet pro Sample eine einfache Frage:
+
+```text
+Welche bekannte gehaltene Position ist das gerade?
+```
+
+Die Klassifikation ist eine Naechster-Mittelpunkt-Suche im `xG/yG/zG`-Raum:
+
+```text
+distance = sqrt((xG - centerX)^2 + (yG - centerY)^2 + (zG - centerZ)^2)
+```
+
+Der kleinste Abstand bestimmt die Position.
+
+Die detaillierte Produkt- und Implementierungsdokumentation steht in:
+
+- [gesture-hub.md](gesture-hub.md)
 
 ## Sinnvolle nächste Schritte
 
@@ -546,5 +819,5 @@ Der bisherige Stand ist ein wichtiger Zwischenschritt:
 - Erste echte Daten zeigen klare Unterschiede zwischen Ruhe und Bewegung.
 
 Damit ist OpenRing jetzt nicht mehr nur ein Live-Monitor für einzelne
-Accelerometerzahlen, sondern ein kleines lokales Messlabor für Bewegungsdaten
-des Rings.
+Accelerometerzahlen, sondern ein kleines lokales Messlabor für
+Beschleunigungsdaten des Rings.

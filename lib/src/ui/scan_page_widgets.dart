@@ -356,11 +356,21 @@ class AccelerometerCard extends StatelessWidget {
     super.key,
     required this.reading,
     required this.isRunning,
+    required this.isStopping,
+    this.lastCommand,
+    this.lastSampleAt,
+    this.stopCleanupSent = false,
+    this.stopWarning,
     required this.onToggle,
   });
 
   final AccelerometerReading? reading;
   final bool isRunning;
+  final bool isStopping;
+  final String? lastCommand;
+  final DateTime? lastSampleAt;
+  final bool stopCleanupSent;
+  final String? stopWarning;
   final VoidCallback onToggle;
 
   @override
@@ -381,6 +391,17 @@ class AccelerometerCard extends StatelessWidget {
       mainText = '\u2014';
       scaleText = null;
     }
+    final diagnostics = <String>[
+      if (lastCommand != null) 'letzter Befehl: $lastCommand',
+      if (lastSampleAt != null)
+        'letztes Sample vor ${_relativeSeconds(lastSampleAt!)}s',
+      if (stopCleanupSent) 'optische Stop-Sequenz gesendet',
+    ];
+    final buttonLabel = isStopping
+        ? 'Stoppe...'
+        : isRunning
+        ? 'Sensor stoppen'
+        : 'Sensor starten';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -411,22 +432,43 @@ class AccelerometerCard extends StatelessWidget {
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                     ),
+                  if (diagnostics.isNotEmpty)
+                    Text(
+                      diagnostics.join(' | '),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                    ),
+                  if (stopWarning != null)
+                    Text(
+                      stopWarning!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.orange.shade800,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                 ],
               ),
             ),
             ElevatedButton(
-              onPressed: onToggle,
-              style: isRunning
+              onPressed: isStopping ? null : onToggle,
+              style: isRunning || isStopping
                   ? ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade700,
                     )
                   : null,
-              child: Text(isRunning ? 'Stoppen' : 'Starten'),
+              child: Text(buttonLabel),
             ),
           ],
         ),
       ),
     );
+  }
+
+  int _relativeSeconds(DateTime time) {
+    final seconds = DateTime.now().difference(time).inSeconds;
+    if (seconds < 0) return 0;
+    return seconds;
   }
 }
 
@@ -435,24 +477,31 @@ class MotionLabCard extends StatelessWidget {
     super.key,
     required this.sessionName,
     required this.recording,
+    required this.recordings,
     required this.isRecording,
     required this.canRecord,
     required this.onNameChanged,
+    required this.onPresetSelected,
     required this.onRecord,
     required this.onStop,
   });
 
   final String sessionName;
   final MotionSessionRecording? recording;
+  final List<MotionSessionRecording> recordings;
   final bool isRecording;
   final bool canRecord;
   final ValueChanged<String> onNameChanged;
+  final ValueChanged<GestureMotionPreset> onPresetSelected;
   final Future<void> Function() onRecord;
   final Future<void> Function() onStop;
 
   @override
   Widget build(BuildContext context) {
     final samples = recording?.samples ?? const <MotionSamplePoint>[];
+    final stats = recording == null ? null : analyzeMotionSession(recording!);
+    final calibration = analyzeGestureCalibration(recordings);
+    final poseAnalysis = analyzeGesturePoseSpace(recordings);
     final label = isRecording
         ? 'Aufnahme laeuft'
         : recording == null
@@ -476,6 +525,21 @@ class MotionLabCard extends StatelessWidget {
                   '$label | ${samples.length} Samples',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final preset in GestureMotionPreset.values)
+                  ChoiceChip(
+                    label: Text(preset.label),
+                    selected: sessionName.startsWith(preset.sessionPrefix),
+                    onSelected: isRecording
+                        ? null
+                        : (_) => onPresetSelected(preset),
+                  ),
               ],
             ),
             const SizedBox(height: 10),
@@ -516,8 +580,194 @@ class MotionLabCard extends StatelessWidget {
                   ? const Center(child: Text('Noch keine Motion-Samples.'))
                   : MotionSessionChart(samples: samples),
             ),
+            if (stats != null) ...[
+              const SizedBox(height: 10),
+              MotionSessionStatsView(stats: stats),
+            ],
+            if (calibration.positions.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              GestureCalibrationView(summary: calibration),
+            ],
+            if (poseAnalysis.groups.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              GesturePoseAnalysisView(summary: poseAnalysis),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MotionSessionStatsView extends StatelessWidget {
+  const MotionSessionStatsView({super.key, required this.stats});
+
+  final MotionSessionStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Session-Auswertung',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            _MetricChip(label: 'Dauer', value: '${stats.duration.inSeconds}s'),
+            _MetricChip(label: 'Dominant', value: stats.dominantAxis),
+            _MetricChip(label: 'Stabil', value: stats.isStable ? 'ja' : 'nein'),
+            _MetricChip(
+              label: 'Delta',
+              value: stats.averageSampleDeltaG.toStringAsFixed(3),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'X ${_axis(stats.x)}   Y ${_axis(stats.y)}   Z ${_axis(stats.z)}   |a| ${_axis(stats.magnitude)}',
+          style: style,
+        ),
+      ],
+    );
+  }
+
+  String _axis(MotionAxisStats axis) {
+    return 'min ${axis.min.toStringAsFixed(2)} / avg ${axis.average.toStringAsFixed(2)} / max ${axis.max.toStringAsFixed(2)}';
+  }
+}
+
+class GestureCalibrationView extends StatelessWidget {
+  const GestureCalibrationView({super.key, required this.summary});
+
+  final GestureCalibrationSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Gesture-Kalibrierung',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            _MetricChip(
+              label: 'Status',
+              value: summary.ready ? 'bereit' : 'mehr Daten',
+            ),
+            _MetricChip(label: 'Beste Achse', value: summary.bestAxis ?? '-'),
+            _MetricChip(
+              label: 'Trennung',
+              value: summary.axisSeparationG.toStringAsFixed(2),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        for (final preset in const [
+          GestureMotionPreset.palmUp,
+          GestureMotionPreset.palmSide,
+          GestureMotionPreset.palmDown,
+        ])
+          if (summary.positions[preset] case final position?)
+            Text(
+              '${preset.label}: ${position.sessionCount} Sessions, '
+              '${position.sampleCount} Samples, '
+              'X ${position.averageX.toStringAsFixed(2)}  '
+              'Y ${position.averageY.toStringAsFixed(2)}  '
+              'Z ${position.averageZ.toStringAsFixed(2)}',
+              style: style,
+            ),
+      ],
+    );
+  }
+}
+
+class GesturePoseAnalysisView extends StatelessWidget {
+  const GesturePoseAnalysisView({super.key, required this.summary});
+
+  final GesturePoseAnalysisSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall;
+    final comparisons = [
+      ...summary.openFistComparisons,
+      ...summary.verticalComparisons,
+      ...summary.rollComparisons,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Gesture-Space', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            _MetricChip(label: 'Status', value: summary.overallStatus.label),
+            _MetricChip(label: 'Gruppen', value: '${summary.groups.length}'),
+          ],
+        ),
+        const SizedBox(height: 6),
+        for (final group in summary.groups.values)
+          Text(
+            '${group.key.label}: ${group.sessionCount} Sessions, '
+            '${group.sampleCount} Samples, '
+            'stabil ${group.isStable ? "ja" : "nein"}, '
+            'Roll ${group.averageRollDegrees.toStringAsFixed(0)} deg, '
+            'X ${group.x.average.toStringAsFixed(2)}  '
+            'Y ${group.y.average.toStringAsFixed(2)}  '
+            'Z ${group.z.average.toStringAsFixed(2)}',
+            style: style,
+          ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            for (final comparison in comparisons)
+              _MetricChip(
+                label: comparison.label,
+                value: comparison.status == GestureSeparationStatus.moreData
+                    ? comparison.status.label
+                    : '${comparison.status.label} '
+                          '${comparison.distanceG.toStringAsFixed(2)}',
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MetricChip extends StatelessWidget {
+  const _MetricChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black.withValues(alpha: 0.12)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        '$label: $value',
+        style: Theme.of(context).textTheme.bodySmall,
       ),
     );
   }

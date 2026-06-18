@@ -27,6 +27,13 @@ Run static analysis:
 flutter analyze
 ```
 
+Run the Windows build after native runner changes, such as system volume,
+scroll, or mouse input channels:
+
+```bash
+flutter build windows
+```
+
 Run a focused test folder while working on one area:
 
 ```bash
@@ -34,6 +41,8 @@ flutter test test/protocol
 flutter test test/storage
 flutter test test/history
 flutter test test/measurements
+flutter test test/motion
+flutter test test/gesture_hub
 ```
 
 Generated Drift code should be refreshed after schema changes:
@@ -50,6 +59,8 @@ dart run build_runner build
 | [test/storage/](../test/storage/) | Drift-backed repository behavior, idempotent inserts, history loading, and local-day filtering |
 | [test/history/](../test/history/) | Chart window calculation, axis bounds, tooltip formatting, and history view models |
 | [test/measurements/](../test/measurements/) | Measurement scheduler sequencing, cooldowns, retries, timeouts, and desired-measurement state |
+| [test/motion/](../test/motion/) | Motion-session statistics, held-position stability, and gesture-space grouping |
+| [test/gesture_hub/](../test/gesture_hub/) | Gesture classification, control switching, volume, scroll, and mouse-control behavior |
 | [test/widget_test.dart](../test/widget_test.dart) | Basic Flutter widget smoke coverage |
 
 ## Current Coverage Focus
@@ -65,6 +76,8 @@ every machine:
 - history-day loading for the last connected ring
 - reconstruction of live heart-rate timestamps for charts
 - measurement scheduler ordering, cooldown, timeout, and retry behavior
+- Motion Lab gesture preset parsing, session statistics, and stability checks
+- Gesture Hub held-position classification and control actions
 
 These areas are good candidates for tests whenever behavior is added or
 changed, because regressions there can break ring communication or stored data
@@ -81,6 +94,8 @@ Add or update automated tests when a change touches:
 - chart-model calculations, date filtering, or value aggregation
 - measurement scheduling, retry timing, cooldowns, or active-measurement state
 - controller or use-case logic that decides which BLE commands are sent
+- Gesture Hub mappings for scroll, volume, mouse movement, or click behavior
+- Motion Lab gesture preset parsing or gesture-space analysis
 
 Prefer small tests with explicit input bytes, dates, and expected values. For
 protocol code, golden packets are especially valuable because they protect
@@ -94,6 +109,8 @@ stacks, native windows, or real ring firmware:
 - BLE scanning, connection, reconnect, and notification behavior
 - Windows and Linux Bluetooth setup differences
 - always-on-top overlay behavior, tray integration, and global hotkeys
+- native Windows input effects such as actual mouse movement, click delivery,
+  scroll delivery, and system volume behavior
 - real-device compatibility across ring models and firmware versions
 - packaged release behavior
 
@@ -124,6 +141,8 @@ feature document if they change project assumptions. Good places are:
 - [protocol.md](protocol.md) for packet formats, firmware quirks, and command behavior
 - [measurement-scheduling.md](measurement-scheduling.md) for live measurement timing
 - [overlay.md](overlay.md) for desktop window behavior
+- [gesture-hub.md](gesture-hub.md) for Gesture Hub control mappings and manual
+  usability findings
 - [database-schema.md](database-schema.md) for persisted data changes
 
 Hardware notes should include the ring model, platform, and observed behavior

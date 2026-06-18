@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import '../ble/ble_service.dart';
+import '../gesture_hub/gesture_hub_controller.dart';
+import '../gesture_hub/gesture_hub_widgets.dart';
 import '../history/history_page.dart';
 import '../history/history_page_controller.dart';
 import '../overlay/overlay_controller.dart';
@@ -109,6 +111,19 @@ class _DashboardView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(scanPageProvider.select((state) => state.lastAccel), (_, next) {
+      if (next != null) {
+        ref
+            .read(gestureHubControllerProvider.notifier)
+            .onAccelerometerReading(next);
+      }
+    });
+
+    final gestureHubState = ref.watch(gestureHubControllerProvider);
+    final gestureHubController = ref.read(
+      gestureHubControllerProvider.notifier,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -146,75 +161,95 @@ class _DashboardView extends ConsumerWidget {
         ],
         if (bleStatus == BleConnectionStatus.connected)
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: 16),
+            child: Stack(
               children: [
-                BatteryCard(battery: pageState.battery),
-                DailyMeasurementButton(
-                  isRunning: pageState.dailyMeasurementRunning,
-                  onToggle: notifier.toggleDailyMeasurement,
-                ),
-                for (final type in ReadingType.supported)
-                  RealTimeCard(
-                    readingType: type,
-                    reading: pageState.realTimeReadings[type],
-                    isRunning: pageState.runningMeasurements.contains(type),
-                    onToggle: pageState.dailyMeasurementRunning
-                        ? null
-                        : () => notifier.toggleRealTime(type),
-                  ),
-                AccelerometerCard(
-                  reading: pageState.lastAccel,
-                  isRunning: pageState.accelRunning,
-                  onToggle: notifier.toggleAccelerometer,
-                ),
-                MotionLabCard(
-                  sessionName: pageState.motionSessionName,
-                  recording: pageState.motionRecording,
-                  isRecording: pageState.motionRecordingActive,
-                  canRecord: pageState.accelRunning,
-                  onNameChanged: notifier.setMotionSessionName,
-                  onRecord: notifier.startMotionRecording,
-                  onStop: notifier.stopMotionRecording,
-                ),
-                const Divider(indent: 12, endIndent: 12),
-                HrLogCard(
-                  hrLog: pageState.hrLog,
-                  isLoading: pageState.hrLogLoading,
-                  onRequest: notifier.requestHrLog,
-                ),
-                StepsCard(
-                  steps: pageState.steps,
-                  dailyActivity: pageState.dailyActivity,
-                  isLoading: pageState.stepsLoading,
-                  onRequest: notifier.requestSteps,
-                ),
-                HrLogSettingsCard(
-                  settings: pageState.hrLogSettings,
-                  onQuery: notifier.queryHrLogSettings,
-                  onSet: notifier.setHrLogSettings,
-                ),
-                // DER NEUE BUTTON:
-                ListTile(
-                  leading: const Icon(Icons.storage, color: Colors.indigo),
-                  title: const Text('SQLite Datenbank einsehen'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // Hier greifen wir auf den eben erstellten Provider zu
-                    final db = ref.read(databaseProvider);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => DriftDbViewer(db),
+                ListView(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  children: [
+                    BatteryCard(battery: pageState.battery),
+                    GestureHubCard(
+                      state: gestureHubState,
+                      sensorRunning: pageState.accelRunning,
+                      sensorStopping: pageState.accelStopping,
+                      onControlSelected: gestureHubController.selectControl,
+                      onToggle: gestureHubController.toggle,
+                    ),
+                    DailyMeasurementButton(
+                      isRunning: pageState.dailyMeasurementRunning,
+                      onToggle: notifier.toggleDailyMeasurement,
+                    ),
+                    for (final type in ReadingType.supported)
+                      RealTimeCard(
+                        readingType: type,
+                        reading: pageState.realTimeReadings[type],
+                        isRunning: pageState.runningMeasurements.contains(type),
+                        onToggle: pageState.dailyMeasurementRunning
+                            ? null
+                            : () => notifier.toggleRealTime(type),
                       ),
-                    );
-                  },
+                    AccelerometerCard(
+                      reading: pageState.lastAccel,
+                      isRunning: pageState.accelRunning,
+                      isStopping: pageState.accelStopping,
+                      lastCommand: pageState.lastAccelCommand,
+                      lastSampleAt: pageState.lastAccelReceivedAt,
+                      stopCleanupSent: pageState.accelStopCleanupSent,
+                      stopWarning: pageState.accelStopWarning,
+                      onToggle: notifier.toggleAccelerometer,
+                    ),
+                    MotionLabCard(
+                      sessionName: pageState.motionSessionName,
+                      recording: pageState.motionRecording,
+                      recordings: pageState.motionRecordings,
+                      isRecording: pageState.motionRecordingActive,
+                      canRecord: pageState.accelRunning,
+                      onNameChanged: notifier.setMotionSessionName,
+                      onPresetSelected: notifier.setMotionGesturePreset,
+                      onRecord: notifier.startMotionRecording,
+                      onStop: notifier.stopMotionRecording,
+                    ),
+                    const Divider(indent: 12, endIndent: 12),
+                    HrLogCard(
+                      hrLog: pageState.hrLog,
+                      isLoading: pageState.hrLogLoading,
+                      onRequest: notifier.requestHrLog,
+                    ),
+                    StepsCard(
+                      steps: pageState.steps,
+                      dailyActivity: pageState.dailyActivity,
+                      isLoading: pageState.stepsLoading,
+                      onRequest: notifier.requestSteps,
+                    ),
+                    HrLogSettingsCard(
+                      settings: pageState.hrLogSettings,
+                      onQuery: notifier.queryHrLogSettings,
+                      onSet: notifier.setHrLogSettings,
+                    ),
+                    // DER NEUE BUTTON:
+                    ListTile(
+                      leading: const Icon(Icons.storage, color: Colors.indigo),
+                      title: const Text('SQLite Datenbank einsehen'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        // Hier greifen wir auf den eben erstellten Provider zu
+                        final db = ref.read(databaseProvider);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => DriftDbViewer(db),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(indent: 12, endIndent: 12),
+                    UtilityCard(
+                      onSyncTime: notifier.syncTime,
+                      onBlink: notifier.blinkTwice,
+                      onReboot: notifier.reboot,
+                    ),
+                  ],
                 ),
-                const Divider(indent: 12, endIndent: 12),
-                UtilityCard(
-                  onSyncTime: notifier.syncTime,
-                  onBlink: notifier.blinkTwice,
-                  onReboot: notifier.reboot,
-                ),
+                if (gestureHubState.isActive)
+                  GestureHubOverlay(state: gestureHubState),
               ],
             ),
           ),

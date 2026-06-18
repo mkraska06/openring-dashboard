@@ -33,8 +33,14 @@ class ScanPageState {
   final HrLogSettings? hrLogSettings;
   final AccelerometerReading? lastAccel;
   final bool accelRunning;
+  final bool accelStopping;
+  final DateTime? lastAccelReceivedAt;
+  final String? lastAccelCommand;
+  final bool accelStopCleanupSent;
+  final String? accelStopWarning;
   final String motionSessionName;
   final MotionSessionRecording? motionRecording;
+  final List<MotionSessionRecording> motionRecordings;
   final bool motionRecordingActive;
   final String? error;
 
@@ -52,8 +58,14 @@ class ScanPageState {
     this.hrLogSettings,
     this.lastAccel,
     this.accelRunning = false,
+    this.accelStopping = false,
+    this.lastAccelReceivedAt,
+    this.lastAccelCommand,
+    this.accelStopCleanupSent = false,
+    this.accelStopWarning,
     this.motionSessionName = '',
     this.motionRecording,
+    this.motionRecordings = const [],
     this.motionRecordingActive = false,
     this.error,
   });
@@ -78,8 +90,17 @@ class ScanPageState {
     AccelerometerReading? lastAccel,
     bool clearAccel = false,
     bool? accelRunning,
+    bool? accelStopping,
+    DateTime? lastAccelReceivedAt,
+    bool clearLastAccelReceivedAt = false,
+    String? lastAccelCommand,
+    bool clearLastAccelCommand = false,
+    bool? accelStopCleanupSent,
+    String? accelStopWarning,
+    bool clearAccelStopWarning = false,
     String? motionSessionName,
     MotionSessionRecording? motionRecording,
+    List<MotionSessionRecording>? motionRecordings,
     bool clearMotionRecording = false,
     bool? motionRecordingActive,
     String? error,
@@ -104,10 +125,22 @@ class ScanPageState {
           : (hrLogSettings ?? this.hrLogSettings),
       lastAccel: clearAccel ? null : (lastAccel ?? this.lastAccel),
       accelRunning: accelRunning ?? this.accelRunning,
+      accelStopping: accelStopping ?? this.accelStopping,
+      lastAccelReceivedAt: clearLastAccelReceivedAt
+          ? null
+          : (lastAccelReceivedAt ?? this.lastAccelReceivedAt),
+      lastAccelCommand: clearLastAccelCommand
+          ? null
+          : (lastAccelCommand ?? this.lastAccelCommand),
+      accelStopCleanupSent: accelStopCleanupSent ?? this.accelStopCleanupSent,
+      accelStopWarning: clearAccelStopWarning
+          ? null
+          : (accelStopWarning ?? this.accelStopWarning),
       motionSessionName: motionSessionName ?? this.motionSessionName,
       motionRecording: clearMotionRecording
           ? null
           : (motionRecording ?? this.motionRecording),
+      motionRecordings: motionRecordings ?? this.motionRecordings,
       motionRecordingActive:
           motionRecordingActive ?? this.motionRecordingActive,
       error: clearError ? null : (error ?? this.error),
@@ -131,12 +164,14 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   ScanPageNotifier(
     BleService service,
     OpenRingStorage storage,
-    void Function() onHistoryDataChanged,
-  ) : _service = service,
-      _storage = storage,
-      _onHistoryDataChanged = onHistoryDataChanged,
-      _useCases = ScanPageUseCases(service),
-      super(const ScanPageState()) {
+    void Function() onHistoryDataChanged, {
+    Duration accelStopVerificationDelay = const Duration(seconds: 3),
+  }) : _service = service,
+       _storage = storage,
+       _onHistoryDataChanged = onHistoryDataChanged,
+       _accelStopVerificationDelay = accelStopVerificationDelay,
+       _useCases = ScanPageUseCases(service),
+       super(const ScanPageState()) {
     _statusSub = _service.statusStream.listen((status) {
       if (status == BleConnectionStatus.disconnected) {
         _onDisconnected();
@@ -147,6 +182,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   final BleService _service;
   final OpenRingStorage _storage;
   final void Function() _onHistoryDataChanged;
+  final Duration _accelStopVerificationDelay;
   final ScanPageUseCases _useCases;
   StreamSubscription<BleDevice>? _scanSub;
   StreamSubscription<Uint8List>? _packetSub;
@@ -162,6 +198,8 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   StepParser? _stepParser;
   String? _connectedDeviceId;
   int? _activeMotionSessionId;
+  Timer? _accelStopVerificationTimer;
+  DateTime? _accelStopRequestedAt;
 
   Future<void> startScan() async {
     state = state.copyWith(
@@ -176,7 +214,13 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       clearHrLogSettings: true,
       clearAccel: true,
       accelRunning: false,
+      accelStopping: false,
+      clearLastAccelReceivedAt: true,
+      clearLastAccelCommand: true,
+      accelStopCleanupSent: false,
+      clearAccelStopWarning: true,
       motionRecordingActive: false,
+      motionRecordings: const [],
       clearError: true,
     );
 
@@ -216,7 +260,13 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       clearHrLogSettings: true,
       clearAccel: true,
       accelRunning: false,
+      accelStopping: false,
+      clearLastAccelReceivedAt: true,
+      clearLastAccelCommand: true,
+      accelStopCleanupSent: false,
+      clearAccelStopWarning: true,
       motionRecordingActive: false,
+      motionRecordings: const [],
       clearError: true,
     );
     await _scanSub?.cancel();
@@ -256,8 +306,11 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     _rtRestarts.clear();
     _dailyMeasurementTimeout?.cancel();
     _dailyMeasurementSilenceTimer?.cancel();
+    _accelStopVerificationTimer?.cancel();
     _dailyMeasurementTimeout = null;
     _dailyMeasurementSilenceTimer = null;
+    _accelStopVerificationTimer = null;
+    _accelStopRequestedAt = null;
     _dailyActiveReadingType = null;
     _dailyAdvancing = false;
     _dailyCycle.reset();
@@ -276,7 +329,12 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       realTimeReadings: const {},
       dailyMeasurementRunning: false,
       accelRunning: false,
+      accelStopping: false,
       clearAccel: true,
+      clearLastAccelReceivedAt: true,
+      clearLastAccelCommand: true,
+      accelStopCleanupSent: false,
+      clearAccelStopWarning: true,
       motionRecordingActive: false,
     );
   }
@@ -524,6 +582,8 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   }
 
   Future<void> toggleAccelerometer() async {
+    if (state.accelStopping) return;
+
     if (state.accelRunning) {
       await _stopAccelerometer();
     } else {
@@ -532,27 +592,94 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   }
 
   Future<void> _startAccelerometer() async {
+    _accelStopVerificationTimer?.cancel();
+    _accelStopVerificationTimer = null;
+    _accelStopRequestedAt = null;
+
     try {
       await _useCases.startAccelerometer();
     } catch (e) {
       state = state.copyWith(error: 'Accelerometer start failed: $e');
       return;
     }
-    state = state.copyWith(accelRunning: true, clearAccel: true);
+    state = state.copyWith(
+      accelRunning: true,
+      accelStopping: false,
+      lastAccelCommand: 'start',
+      accelStopCleanupSent: false,
+      clearAccel: true,
+      clearAccelStopWarning: true,
+      clearError: true,
+    );
   }
 
   Future<void> _stopAccelerometer() async {
     if (state.motionRecordingActive) {
       await stopMotionRecording();
     }
+    _accelStopVerificationTimer?.cancel();
+    final stopRequestedAt = DateTime.now();
+    _accelStopRequestedAt = stopRequestedAt;
+    state = state.copyWith(
+      accelStopping: true,
+      lastAccelCommand: 'stop',
+      accelStopCleanupSent: false,
+      clearAccelStopWarning: true,
+      clearError: true,
+    );
+
     try {
       await _useCases.stopAccelerometer();
-    } catch (_) {}
-    state = state.copyWith(accelRunning: false);
+    } catch (e) {
+      _accelStopRequestedAt = null;
+      state = state.copyWith(
+        accelStopping: false,
+        error: 'Accelerometer stop failed: $e',
+      );
+      return;
+    }
+
+    if (state.runningMeasurements.isEmpty) {
+      try {
+        await _useCases.stopAllRealTimeMeasurements();
+        state = state.copyWith(accelStopCleanupSent: true);
+      } catch (e) {
+        state = state.copyWith(
+          error: 'Optische Stop-Sequenz fehlgeschlagen: $e',
+        );
+      }
+    }
+
+    _accelStopVerificationTimer = Timer(_accelStopVerificationDelay, () {
+      _verifyAccelerometerStopped(stopRequestedAt);
+    });
+  }
+
+  void _verifyAccelerometerStopped(DateTime stopRequestedAt) {
+    if (_accelStopRequestedAt != stopRequestedAt) return;
+
+    final lastSample = state.lastAccelReceivedAt;
+    final stillStreaming =
+        lastSample != null && !lastSample.isBefore(stopRequestedAt);
+
+    _accelStopRequestedAt = null;
+    _accelStopVerificationTimer = null;
+    state = state.copyWith(
+      accelRunning: stillStreaming,
+      accelStopping: false,
+      accelStopWarning: stillStreaming
+          ? 'Stop gesendet, Ring streamt weiter'
+          : null,
+      clearAccelStopWarning: !stillStreaming,
+    );
   }
 
   void setMotionSessionName(String value) {
     state = state.copyWith(motionSessionName: value);
+  }
+
+  void setMotionGesturePreset(GestureMotionPreset preset) {
+    state = state.copyWith(motionSessionName: gestureSessionName(preset));
   }
 
   Future<void> startMotionRecording() async {
@@ -575,6 +702,10 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
           session: session,
           samples: const [],
         ),
+        motionRecordings: [
+          MotionSessionRecording(session: session, samples: const []),
+          ...state.motionRecordings,
+        ],
         motionRecordingActive: true,
         clearError: true,
       );
@@ -604,6 +735,21 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
                 ),
                 samples: recording.samples,
               ),
+        motionRecordings: [
+          if (recording != null)
+            MotionSessionRecording(
+              session: MotionSessionSummary(
+                id: recording.session.id,
+                deviceId: recording.session.deviceId,
+                name: recording.session.name,
+                startedAt: recording.session.startedAt,
+                endedAt: DateTime.now(),
+              ),
+              samples: recording.samples,
+            ),
+          for (final saved in state.motionRecordings)
+            if (saved.session.id != sessionId) saved,
+        ],
         motionRecordingActive: false,
       );
     } catch (e) {
@@ -740,7 +886,10 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       case cmdRawSensor:
         final reading = parseAccelerometerResponse(packet);
         if (reading != null) {
-          state = state.copyWith(lastAccel: reading);
+          state = state.copyWith(
+            lastAccel: reading,
+            lastAccelReceivedAt: DateTime.now(),
+          );
           _appendMotionSample(reading);
         }
     }
@@ -751,9 +900,11 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       final recording = await _storage.loadLatestMotionSession(
         deviceId: deviceId,
       );
+      final recordings = await _storage.loadMotionSessions(deviceId: deviceId);
       state = state.copyWith(
         motionRecording: recording,
         clearMotionRecording: recording == null,
+        motionRecordings: recordings,
         motionSessionName:
             recording?.session.name ?? _defaultMotionSessionName(),
       );
@@ -780,6 +931,14 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         session: recording.session,
         samples: [...recording.samples, sample],
       ),
+      motionRecordings: [
+        MotionSessionRecording(
+          session: recording.session,
+          samples: [...recording.samples, sample],
+        ),
+        for (final saved in state.motionRecordings)
+          if (saved.session.id != recording.session.id) saved,
+      ],
     );
     _persistMotion(
       () => _storage.appendMotionSample(
@@ -832,6 +991,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     }
     _dailyMeasurementTimeout?.cancel();
     _dailyMeasurementSilenceTimer?.cancel();
+    _accelStopVerificationTimer?.cancel();
     super.dispose();
   }
 }

@@ -72,6 +72,10 @@ abstract class OpenRingStorage {
   Future<MotionSessionRecording?> loadLatestMotionSession({
     required String deviceId,
   });
+
+  Future<List<MotionSessionRecording>> loadMotionSessions({
+    required String deviceId,
+  });
 }
 
 class DriftOpenRingStorage implements OpenRingStorage {
@@ -365,43 +369,68 @@ class DriftOpenRingStorage implements OpenRingStorage {
   Future<MotionSessionRecording?> loadLatestMotionSession({
     required String deviceId,
   }) async {
-    final sessions =
-        await (_db.select(_db.motionSessions)
-              ..where((row) => row.deviceId.equals(deviceId))
-              ..orderBy([(row) => OrderingTerm.desc(row.startedAt)]))
-            .get();
+    final sessions = await _loadMotionSessionRows(deviceId);
 
     for (final session in sessions) {
-      final sampleRows =
-          await (_db.select(_db.motionSamples)
-                ..where((sample) => sample.sessionId.equals(session.id))
-                ..orderBy([(sample) => OrderingTerm.asc(sample.receivedAt)]))
-              .get();
-      if (sampleRows.isEmpty) continue;
-
-      return MotionSessionRecording(
-        session: MotionSessionSummary(
-          id: session.id,
-          deviceId: session.deviceId,
-          name: session.name,
-          startedAt: session.startedAt.toLocal(),
-          endedAt: session.endedAt?.toLocal(),
-        ),
-        samples: [
-          for (final sample in sampleRows)
-            MotionSamplePoint(
-              receivedAt: sample.receivedAt.toLocal(),
-              reading: AccelerometerReading(
-                accX: sample.accX,
-                accY: sample.accY,
-                accZ: sample.accZ,
-              ),
-            ),
-        ],
-      );
+      final recording = await _loadMotionRecording(session);
+      if (recording.samples.isEmpty) continue;
+      return recording;
     }
 
     return null;
+  }
+
+  @override
+  Future<List<MotionSessionRecording>> loadMotionSessions({
+    required String deviceId,
+  }) async {
+    final sessions = await _loadMotionSessionRows(deviceId);
+    final recordings = <MotionSessionRecording>[];
+    for (final session in sessions) {
+      final recording = await _loadMotionRecording(session);
+      if (recording.samples.isNotEmpty) {
+        recordings.add(recording);
+      }
+    }
+    return recordings;
+  }
+
+  Future<List<MotionSession>> _loadMotionSessionRows(String deviceId) {
+    return (_db.select(_db.motionSessions)
+          ..where((row) => row.deviceId.equals(deviceId))
+          ..orderBy([(row) => OrderingTerm.desc(row.startedAt)]))
+        .get();
+  }
+
+  Future<MotionSessionRecording> _loadMotionRecording(
+    MotionSession session,
+  ) async {
+    final sampleRows =
+        await (_db.select(_db.motionSamples)
+              ..where((sample) => sample.sessionId.equals(session.id))
+              ..orderBy([(sample) => OrderingTerm.asc(sample.receivedAt)]))
+            .get();
+
+    return MotionSessionRecording(
+      session: MotionSessionSummary(
+        id: session.id,
+        deviceId: session.deviceId,
+        name: session.name,
+        startedAt: session.startedAt.toLocal(),
+        endedAt: session.endedAt?.toLocal(),
+      ),
+      samples: [
+        for (final sample in sampleRows)
+          MotionSamplePoint(
+            receivedAt: sample.receivedAt.toLocal(),
+            reading: AccelerometerReading(
+              accX: sample.accX,
+              accY: sample.accY,
+              accZ: sample.accZ,
+            ),
+          ),
+      ],
+    );
   }
 }
 

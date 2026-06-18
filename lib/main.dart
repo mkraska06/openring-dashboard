@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'src/gesture_hub/gesture_hub_controller.dart';
 import 'src/overlay/overlay_controller.dart';
 import 'src/overlay/overlay_state.dart';
 import 'src/overlay/overlay_widget.dart';
@@ -45,6 +46,13 @@ class _OpenRingAppState extends ConsumerState<OpenRingApp> {
         await ref.read(overlayControllerProvider).registerGlobalHotkeys();
       } catch (e) {
         debugPrint('Hotkey registration failed: $e');
+      }
+      try {
+        await ref
+            .read(gestureHubControllerProvider.notifier)
+            .registerGlobalHotkey();
+      } catch (e) {
+        debugPrint('Gesture Hub hotkey registration failed: $e');
       }
     });
   }

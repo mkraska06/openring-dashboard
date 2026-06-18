@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../ble/ble_service.dart';
 import '../protocol/accelerometer.dart';
 import '../protocol/battery.dart';
+import '../protocol/commands.dart';
 import '../protocol/hr_log.dart';
 import '../protocol/hr_settings.dart';
 import '../protocol/real_time.dart';
@@ -35,6 +36,12 @@ class ScanPageUseCases {
 
   Future<void> stopRealTime(int readingType) {
     return _service.sendPacket(makeStopRealTimeRequest(readingType));
+  }
+
+  Future<void> stopAllRealTimeMeasurements() async {
+    for (final readingType in ReadingType.supported) {
+      await stopRealTime(readingType);
+    }
   }
 
   Future<void> requestHrLog(DateTime day) {

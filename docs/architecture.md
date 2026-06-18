@@ -66,6 +66,7 @@ A renderable PlantUML diagram for module ownership is available in
 | [lib/src/history/](../lib/src/history/) | History page state, chart models, chart widgets, and history UI behavior |
 | [lib/src/overlay/](../lib/src/overlay/) | Overlay state, native window control, tray menu, hotkeys, and overlay widget |
 | [lib/src/measurements/](../lib/src/measurements/) | Measurement sequencing and scheduler logic |
+| [lib/src/gesture_hub/](../lib/src/gesture_hub/) | Gesture-based system controls using held accelerometer positions |
 
 ## BLE Layer
 
@@ -219,6 +220,25 @@ The scheduler direction is:
 Some scheduler logic already exists in [lib/src/measurements/](../lib/src/measurements/), but integration
 with the main live UI and overlay is still a work in progress.
 
+## Gesture Hub
+
+The Gesture Hub lives in [lib/src/gesture_hub/](../lib/src/gesture_hub/).
+
+It turns held accelerometer positions into coarse desktop controls:
+
+- scrolling
+- relative volume changes
+- mouse movement and left click
+
+The Gesture Hub deliberately avoids fast tap or swipe detection because the
+observed stock-firmware accelerometer stream is roughly `1 Hz`. Instead, it
+uses calibrated held positions from Motion Lab recordings. The detailed
+gesture data collection, control mapping, and native Windows input services
+are documented in:
+
+- [gesture-hub.md](gesture-hub.md)
+- [motion-research-lab.md](motion-research-lab.md)
+
 ## Testing Strategy
 
 OpenRing should favor focused tests around deterministic logic and high-risk
@@ -265,6 +285,7 @@ boundaries or moving protocol and BLE logic into widgets.
 - [data-flow.md](data-flow.md)
 - [measurement-scheduling.md](measurement-scheduling.md)
 - [overlay.md](overlay.md)
+- [gesture-hub.md](gesture-hub.md)
 - [testing.md](testing.md)
 - [specs/initial-requirements.md](specs/initial-requirements.md)
 - [specs/use-case-diagram.puml](specs/use-case-diagram.puml)

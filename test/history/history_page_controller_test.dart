@@ -149,6 +149,11 @@ class _FakeStorage implements OpenRingStorage {
   }) async => null;
 
   @override
+  Future<List<MotionSessionRecording>> loadMotionSessions({
+    required String deviceId,
+  }) async => const [];
+
+  @override
   Future<void> setLastConnectedDevice({
     required String deviceId,
     String? name,
