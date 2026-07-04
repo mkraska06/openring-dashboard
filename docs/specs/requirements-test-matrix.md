@@ -4,6 +4,9 @@ This document maps the requirements from
 [initial-requirements.md](initial-requirements.md) to automated tests, partial
 test coverage, or manual acceptance checks.
 
+Last checked: 2026-07-04 against the current Flutter implementation.
+`flutter test` passed with 172 tests.
+
 Status values:
 
 | Status | Meaning |
@@ -30,22 +33,22 @@ Test types:
 | VM-01 | List reachable Colmi rings with name and MAC address | Integration + Manual | Partial | Fake `BleService` scan test for filtering and UI list; manual BLE scan with real ring. |
 | VM-02 | User selects a ring and connects over BLE | Integration + Manual | Partial | Controller/use-case test with fake BLE connect; manual connect test with real ring. |
 | VM-03 | Persist last connected ring MAC address | Storage | Covered | [test/storage/storage_repository_test.dart](../../test/storage/storage_repository_test.dart) checks `setLastConnectedDevice` and `getLastConnectedDeviceId`. |
-| VM-04 | Auto-connect to saved ring on app startup | Integration + Manual | Open | Add startup/controller test with stored device ID and fake BLE service; manual startup acceptance test. |
+| VM-04 | Auto-connect to saved ring on app startup | Integration + Manual | Partial | `ScanPageNotifier` auto-connects to the saved device ID and `scan_page_controller_test.dart` covers the fake BLE flow; add manual startup acceptance test with a real ring. |
 | VM-05 | Show connection status as searching, connecting, connected, or disconnected | Unit / Widget | Partial | Add state/controller test for status transitions and widget test for displayed status. |
-| VM-06 | Reconnect automatically after connection loss | Integration + Manual | Open | Add fake BLE disconnect stream test; manual reconnect test with ring powered off/on or moved out of range. |
+| VM-06 | Reconnect automatically after connection loss | Integration + Manual | Partial | `ScanPageNotifier` schedules reconnect after unexpected disconnects and skips reconnect after manual disconnect; fake BLE tests cover both paths, manual ring validation still needed. |
 | VM-07 | Show connected ring model | Integration + Widget | Open | Add parser/service model source first, then widget/controller test. |
 | VM-08 | Show firmware version | Integration + Widget | Open | Requires implemented firmware query/parser. |
 | VM-09 | Show connected ring MAC address | Widget / Integration | Partial | Storage has device ID coverage; add widget/controller test for displayed selected device. |
-| VM-10 | User can manually disconnect BLE connection | Integration + Manual | Open | Add controller test that disconnect action calls BLE port; manual test with real ring. |
-| VM-11 | Sync ring time with desktop clock on connection | Unit / Integration | Partial | Add golden packet test for set-time command and controller test that connect flow sends it. |
+| VM-10 | User can manually disconnect BLE connection | Integration + Manual | Partial | Dashboard exposes a disconnect action through `ScanPageNotifier.disconnect`; add controller test that it calls the BLE port and manual ring validation. |
+| VM-11 | Sync ring time with desktop clock | Unit / Integration | Partial | `makeSetTimePacket` and the Advanced sync action exist; the requirement says sync on every connection, so add a connect-flow test and automatic call if desired. |
 
 ## 2. Heart Rate Monitoring
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| HF-01 | Show current heart rate in BPM | Unit / Widget | Partial | Real-time parser is covered; add controller/widget test for displaying latest heart-rate snapshot. |
+| HF-01 | Show current heart rate in BPM | Unit / Widget | Partial | Real-time parser and dashboard/overlay rendering paths exist; add focused widget/controller test for displaying latest heart-rate snapshot. |
 | HF-02 | Store every received heart-rate value with timestamp | Storage | Covered | [test/storage/storage_repository_test.dart](../../test/storage/storage_repository_test.dart) covers live vital sample persistence and pending-value filtering. |
-| HF-03 | Display selected day's heart-rate history graphically | Storage / Unit / Widget | Partial | Storage day filtering and chart models covered; add widget test for chart rendering with sample data. |
+| HF-03 | Display selected day's heart-rate history graphically | Storage / Unit / Widget | Covered | Storage day filtering, chart models, and a history widget smoke test with sample HR data are covered by `storage_repository_test.dart`, `history_chart_models_test.dart`, and `widget_test.dart`. |
 | HF-04 | Display selected week's heart-rate history | Storage / Widget | Open | Implement week aggregation/query first. |
 | HF-05 | Display selected month's heart-rate history | Storage / Widget | Open | Implement month aggregation/query first. |
 | HF-06 | Calculate and display daily average heart rate | Storage / Unit | Covered | [test/storage/storage_repository_test.dart](../../test/storage/storage_repository_test.dart) checks daily average. |
@@ -57,9 +60,9 @@ Test types:
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| HV-01 | Show current HRV value | Unit / Widget | Partial | Real-time parser supports HRV; add controller/widget test for latest HRV display. |
-| HV-02 | Store every received HRV value with timestamp | Storage | Partial | Existing vital-sample storage pattern covers generic vitals; add explicit HRV case. |
-| HV-03 | Display selected day's HRV history | Storage / Widget | Open | Add day history fixture for HRV and widget/chart rendering test. |
+| HV-01 | Show current HRV value | Unit / Widget | Partial | Real-time parser supports HRV and the dashboard renders supported reading types; add explicit controller/widget test for latest HRV display. |
+| HV-02 | Store every received HRV value with timestamp | Storage | Partial | `persistRealTimeReading` maps HRV into vital samples; add explicit HRV storage fixture. |
+| HV-03 | Display selected day's HRV history | Storage / Widget | Partial | History page has an HRV chart card backed by generic vital history; add explicit HRV day fixture and widget/chart rendering test. |
 | HV-04 | Show message when ring provides no HRV data | Widget / Manual | Open | Add unsupported/timeout state in controller, then widget test. |
 | HV-05 | Sync stored HRV logs on connection | Integration + Manual | Open | Requires known HRV log protocol support. |
 
@@ -67,9 +70,9 @@ Test types:
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| SP-01 | Show current SpO2 value | Unit / Widget | Partial | Real-time parser supports SpO2; add controller/widget test for latest SpO2 display. |
+| SP-01 | Show current SpO2 value | Unit / Widget | Partial | Real-time parser and dashboard/overlay rendering paths exist; add explicit controller/widget test for latest SpO2 display. |
 | SP-02 | Store every received SpO2 value with timestamp | Storage | Covered | [test/storage/storage_repository_test.dart](../../test/storage/storage_repository_test.dart) stores a valid SpO2 reading. |
-| SP-03 | Display selected day's SpO2 history | Storage / Widget | Partial | Storage supports vital kinds; add explicit SpO2 history and chart widget test. |
+| SP-03 | Display selected day's SpO2 history | Storage / Widget | Partial | History page has a SpO2 chart card backed by generic vital history; add explicit SpO2 history fixture and chart widget test. |
 | SP-04 | Display selected week's SpO2 history | Storage / Widget | Open | Implement week aggregation/query first. |
 | SP-05 | Sync stored SpO2 logs on connection | Integration + Manual | Open | Requires stable stored SpO2 log protocol support. |
 
@@ -93,9 +96,9 @@ Test types:
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| AT-01 | Show current day's step count | Storage / Widget | Partial | [test/storage/storage_repository_test.dart](../../test/storage/storage_repository_test.dart) covers daily activity totals; add widget display test. |
-| AT-02 | Show current day's calories | Storage / Widget | Partial | Daily activity totals are covered; add widget display test. |
-| AT-03 | Show current day's distance | Storage / Widget | Partial | Daily activity totals are covered; add widget display test. |
+| AT-01 | Show current day's step count | Storage / Widget | Partial | Dashboard and overlay can show daily steps from live activity or step logs; storage totals are covered, but add explicit widget display tests. |
+| AT-02 | Show current day's calories | Storage / Widget | Partial | Dashboard shows calories from live activity or step logs and storage totals are covered; add explicit widget display test. |
+| AT-03 | Show current day's distance | Storage / Widget | Partial | Dashboard shows distance from live activity or step logs and storage totals are covered; add explicit widget display test. |
 | AT-04 | User can set daily step goal | Storage / Widget | Open | Implement setting storage and UI control first. |
 | AT-05 | Show progress toward step goal | Unit / Widget | Open | Add progress calculation and widget test after step goal exists. |
 | AT-06 | Display step count for last 7 days | Storage / Widget | Open | Implement 7-day activity aggregation first. |
@@ -114,16 +117,16 @@ Test types:
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| AC-01 | Show current accelerometer X/Y/Z values | Unit / Widget | Partial | [test/protocol/accelerometer_test.dart](../../test/protocol/accelerometer_test.dart) covers signed parsing; add UI/controller display test. |
-| AC-02 | Display accelerometer data graphically | Unit / Widget | Open | Add chart model and widget test after graph implementation. |
-| AC-03 | Use ring as mouse | Manual / Integration | Open | Experimental idea; needs concrete acceptance criteria before testing. |
+| AC-01 | Show current accelerometer X/Y/Z values | Unit / Widget | Covered | Parser tests cover signed axes and `widget_test.dart` covers `AccelerometerCard` rendering diagnostics and values. |
+| AC-02 | Display accelerometer data graphically | Unit / Widget | Partial | Motion Lab records samples and renders `MotionSessionChart`; clarify whether this satisfies the general accelerometer chart requirement or add a dedicated live chart. |
+| AC-03 | Use ring as mouse | Manual / Integration | Partial | Gesture Hub implements mouse movement and click mapping from accelerometer poses; needs concrete acceptance criteria and manual desktop validation. |
 
 ## 9. Battery And Device Status
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| BA-01 | Show current battery level | Unit / Widget | Partial | [test/protocol/battery_test.dart](../../test/protocol/battery_test.dart) and storage tests cover parsing/persistence; add widget display test. |
-| BA-02 | Show charging status | Unit / Widget | Partial | Battery parser/storage covered; add widget display test for charging state. |
+| BA-01 | Show current battery level | Unit / Widget | Partial | Parser, persistence, dashboard card, and overlay row exist; add explicit widget display test. |
+| BA-02 | Show charging status | Unit / Widget | Partial | Parser, persistence, and dashboard icon/text exist; add widget display test for charging state. |
 | BA-03 | Show warning when battery is below 20% | Unit / Widget | Open | Add threshold styling/state test. |
 | BA-04 | Show battery history | Storage / Widget | Open | Add battery history query and chart test after implementation. |
 
@@ -131,44 +134,44 @@ Test types:
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| GF-01 | User can make ring LED blink | Unit / Integration + Manual | Partial | Add command packet test for blink; add controller test that button calls BLE port; manual ring blink test. |
-| GF-02 | User can restart ring | Unit / Integration + Manual | Partial | Add command packet test for reboot; add controller test; manual ring reboot test. |
+| GF-01 | User can make ring LED blink | Unit / Integration + Manual | Partial | Blink command and Advanced UI action exist; add command packet test, controller test, and manual ring blink test. |
+| GF-02 | User can restart ring | Unit / Integration + Manual | Partial | Reboot command and confirmation UI exist; add command packet test, controller test, and manual ring reboot test. |
 | GF-03 | User can reset ring | Unit / Integration + Manual | Open | Requires implemented reset command and clear acceptance criteria. |
 
 ## 11. Data Storage And Export
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| DE-01 | Store all data in a local SQLite database | Storage | Partial | Drift storage tests cover implemented data types; add checks as new data types are added. |
-| DE-02 | User can choose an export date range | Widget / Integration | Open | Implement export UI/controller first. |
-| DE-03 | Export selected data as CSV | Unit / Integration | Open | Add exporter test with fixed fixture data and expected CSV output. |
-| DE-04 | Export selected data as JSON | Unit / Integration | Open | Add exporter test with fixed fixture data and expected JSON output. |
-| DE-05 | User can choose which data types to export | Widget / Integration | Open | Add export options state and UI test after implementation. |
+| DE-01 | Store all implemented data in a local SQLite database | Storage | Partial | Drift stores devices, settings, vitals, battery, activity, and motion sessions; requirement remains partial until future sleep/stress/export data types exist. |
+| DE-02 | User can choose an export date range | Widget / Integration | Partial | Export UI exposes start/end date pickers; add widget test and manual file export acceptance test. |
+| DE-03 | Export selected data as CSV | Unit / Integration | Partial | CSV formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; file write path needs manual/desktop validation. |
+| DE-04 | Export selected data as JSON | Unit / Integration | Partial | JSON formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; file write path needs manual/desktop validation. |
+| DE-05 | User can choose which data types to export | Widget / Integration | Partial | Export UI exposes type filters and repository respects selected types; add widget test for filter interaction. |
 
 ## 12. Overlay Requirements
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| OV-01 | Overlay window is always on top | Manual | Partial | State/controller can be tested, but native always-on-top needs manual Windows/Linux validation. |
-| OV-02 | Overlay shows current heart rate in BPM | Widget | Open | Add overlay widget test with heart-rate state. |
-| OV-03 | Overlay shows current SpO2 percentage | Widget | Open | Add overlay widget test with SpO2 state. |
-| OV-04 | Overlay shows battery percentage | Widget | Open | Add overlay widget test with battery state. |
-| OV-05 | Overlay shows current day's steps | Widget | Open | Add overlay widget test with activity state. |
-| OV-06 | Overlay renders BPM values over 120 in red | Widget | Open | Add threshold style test. |
-| OV-07 | Overlay renders SpO2 values under 95% in red | Widget | Open | Add threshold style test. |
-| OV-08 | User can configure thresholds | Storage / Widget | Open | Implement settings first, then persistence and UI tests. |
-| OV-09 | User can drag overlay freely | Manual / Widget | Partial | Native drag behavior manual; controller state can be tested. |
-| OV-10 | Persist overlay position | Storage / Integration | Open | Add settings persistence test. |
-| OV-11 | User can lock overlay position | Unit / Widget | Open | Add overlay-state and widget test. |
-| OV-12 | User can configure overlay opacity | Unit / Widget | Open | Add overlay-state and widget test. |
-| OV-13 | Overlay is hidden from taskbar | Manual | Open | Native desktop acceptance test. |
-| OV-14 | Overlay shows connection status icon | Widget | Open | Add overlay widget test for connected/disconnected states. |
-| OV-15 | User can toggle each overlay parameter | Unit / Widget | Open | Add overlay visibility state and widget test. |
+| OV-01 | Overlay window is always on top | Manual | Partial | `OverlayController.activateOverlay` calls `windowManager.setAlwaysOnTop(true)`; native behavior needs manual Windows/Linux validation. |
+| OV-02 | Overlay shows current heart rate in BPM | Widget | Partial | `OverlayWidget` renders heart-rate value from `scanPageProvider`; add overlay widget test with heart-rate state. |
+| OV-03 | Overlay shows current SpO2 percentage | Widget | Partial | `OverlayWidget` renders SpO2 value from `scanPageProvider`; add overlay widget test with SpO2 state. |
+| OV-04 | Overlay shows battery percentage | Widget | Partial | `OverlayWidget` renders battery level and charging icon; add overlay widget test with battery state. |
+| OV-05 | Overlay shows current day's steps | Widget | Partial | `OverlayWidget` renders steps from daily activity or step log totals; add overlay widget test with activity state. |
+| OV-06 | Overlay renders BPM values over 120 in red | Widget | Partial | Threshold logic exists in `OverlayWidget`; add threshold style test. |
+| OV-07 | Overlay renders SpO2 values under 95% in red | Widget | Partial | Threshold logic exists in `OverlayWidget`; add threshold style test. |
+| OV-08 | User can configure thresholds | Storage / Widget | Partial | Threshold settings and persistence methods exist; add visible settings UI and persistence/widget tests. |
+| OV-09 | User can drag overlay freely | Manual / Widget | Partial | Interactive mode calls `windowManager.startDragging`; native drag behavior needs manual validation and controller/widget tests. |
+| OV-10 | Persist overlay position | Storage / Integration | Partial | Position is stored via `SharedPreferences` in `OverlaySettingsNotifier`; add persistence test. |
+| OV-11 | User can lock overlay position | Unit / Widget | Partial | Interactive mode toggles between click-through locked mode and draggable mode; add clearer UI/state test for the lock behavior. |
+| OV-12 | User can configure overlay opacity | Unit / Widget | Partial | Opacity state, persistence, and native application exist; add visible settings UI and tests. |
+| OV-13 | Overlay is hidden from taskbar | Manual | Partial | `OverlayController.activateOverlay` calls `windowManager.setSkipTaskbar(true)`; native desktop acceptance test still required. |
+| OV-14 | Overlay shows connection status icon | Widget | Partial | `OverlayWidget` renders green/grey connection dot; add widget test for connected/disconnected states. |
+| OV-15 | User can toggle each overlay parameter | Unit / Widget | Partial | Visibility state and rendering gates exist; add visible settings UI and widget tests. |
 | OV-16 | User can configure overlay font size | Unit / Widget | Open | Add settings and widget style test. |
 | OV-17 | User can configure parameter colors | Unit / Widget | Open | Add settings and widget style test. |
-| OV-18 | User activates overlay through a button | Widget / Integration | Open | Add UI/controller test for activation action. |
-| OV-19 | App remains open and usable after overlay activation | Manual / Integration | Open | Add controller integration test; manual desktop acceptance test. |
-| OV-20 | User deactivates overlay through a button | Widget / Integration | Open | Add UI/controller test for deactivation action. |
+| OV-18 | User activates overlay through a button | Widget / Integration | Partial | Main title bar shows an overlay activation button while connected; add UI/controller test for activation action. |
+| OV-19 | App remains open and usable after overlay activation | Manual / Integration | Partial | Overlay is integrated in the same app and system tray can restore the main window; add controller integration test and manual desktop acceptance test. |
+| OV-20 | User deactivates overlay through the system | Widget / Integration | Partial | Deactivation exists through tray/hotkey/controller; clarify whether a visible in-app overlay button is required and add tests. |
 
 ## 13. Non-Functional Requirements
 
@@ -182,15 +185,23 @@ Test types:
 | NF-06 | Live HR value appears within 2 seconds after receipt | Integration / Manual | Open | Add fake packet-to-UI timing test; manual ring validation. |
 | NF-07 | Store user data only locally | Architecture / Review | Partial | Drift/local-first design documented; add review checklist or static dependency check if needed. |
 | NF-08 | Send no user data to external servers | Architecture / Review | Partial | No backend dependency currently; add review checklist/static network dependency check if needed. |
-| NF-09 | Main window uses sidebar navigation | Widget / Manual | Open | Add widget test once navigation structure is stable. |
+| NF-09 | Main window uses sidebar navigation | Widget / Manual | Covered | `ScanPage` uses `NavigationRail`, and `widget_test.dart` verifies switching to the History section. |
 | NF-10 | App is fully keyboard operable | Widget / Manual | Open | Add focused accessibility/manual keyboard test plan. |
 
 ## Recommended Next Steps
 
-1. Create missing tests in this order:
-   - protocol command packets that are already implemented
-   - storage and history requirements that already have model support
-   - controller tests with fake BLE ports for connection and sync flows
-   - widget tests for overlay value display and threshold styling
-2. Keep hardware-dependent checks as manual acceptance tests until a reliable
+1. Close the documentation/test gap for implemented functionality:
+   - overlay widget tests for values, connection state, visibility flags, and threshold colors
+   - overlay settings persistence tests for position, opacity, visibility, and thresholds
+   - dashboard widget tests for battery, activity totals, HRV, and SpO2 display
+   - protocol command packet tests for set-time, blink, and reboot
+2. Validate reliability features with real hardware:
+   - manual startup acceptance test for auto-connect to the last saved ring
+   - manual reconnect test after moving the ring out of range or powering it off/on
+   - UI/status checks while reconnect is pending or failing
+3. Harden user-facing data export:
+   - widget tests for date pickers, format selection, and data-type filters
+   - manual desktop validation of the generated file path
+   - optional save-location picker if a file-picker dependency is added later
+4. Keep hardware-dependent checks as manual acceptance tests until a reliable
    desktop integration test setup exists.

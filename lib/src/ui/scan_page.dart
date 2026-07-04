@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import '../ble/ble_service.dart';
+import '../data_export/export_card.dart';
 import '../gesture_hub/gesture_hub_controller.dart';
 import '../gesture_hub/gesture_hub_widgets.dart';
 import '../history/history_page.dart';
@@ -13,7 +14,7 @@ import 'scan_page_controller.dart';
 import 'scan_page_widgets.dart';
 import '../storage/app_database.dart';
 
-enum _MainSection { dashboard, gestures, history, advanced }
+enum _MainSection { dashboard, gestures, history, export, advanced }
 
 class ScanPage extends ConsumerStatefulWidget {
   const ScanPage({super.key});
@@ -83,6 +84,11 @@ class _ScanPageState extends ConsumerState<ScanPage> {
                       label: Text('History'),
                     ),
                     NavigationRailDestination(
+                      icon: Icon(Icons.file_download_outlined),
+                      selectedIcon: Icon(Icons.file_download),
+                      label: Text('Export'),
+                    ),
+                    NavigationRailDestination(
                       icon: Icon(Icons.tune_outlined),
                       selectedIcon: Icon(Icons.tune),
                       label: Text('Advanced'),
@@ -102,6 +108,7 @@ class _ScanPageState extends ConsumerState<ScanPage> {
                           ? _GestureHubView(pageState: pageState)
                           : const _ConnectRingHint(),
                     _MainSection.history => const HistoryPage(),
+                    _MainSection.export => const _ExportView(),
                     _MainSection.advanced =>
                       bleStatus == BleConnectionStatus.connected
                           ? _AdvancedView(
@@ -117,6 +124,15 @@ class _ScanPageState extends ConsumerState<ScanPage> {
         ],
       ),
     );
+  }
+}
+
+class _ExportView extends StatelessWidget {
+  const _ExportView();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(children: const [DataExportCard()]);
   }
 }
 

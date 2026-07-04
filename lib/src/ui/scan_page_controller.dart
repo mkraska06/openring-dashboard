@@ -166,10 +166,13 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     OpenRingStorage storage,
     void Function() onHistoryDataChanged, {
     Duration accelStopVerificationDelay = const Duration(seconds: 3),
+    Duration reconnectDelay = const Duration(seconds: 5),
+    bool autoConnectOnStartup = true,
   }) : _service = service,
        _storage = storage,
        _onHistoryDataChanged = onHistoryDataChanged,
        _accelStopVerificationDelay = accelStopVerificationDelay,
+       _reconnectDelay = reconnectDelay,
        _useCases = ScanPageUseCases(service),
        super(const ScanPageState()) {
     _statusSub = _service.statusStream.listen((status) {
@@ -177,12 +180,16 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         _onDisconnected();
       }
     });
+    if (autoConnectOnStartup) {
+      unawaited(autoConnectToSavedRing());
+    }
   }
 
   final BleService _service;
   final OpenRingStorage _storage;
   final void Function() _onHistoryDataChanged;
   final Duration _accelStopVerificationDelay;
+  final Duration _reconnectDelay;
   final ScanPageUseCases _useCases;
   StreamSubscription<BleDevice>? _scanSub;
   StreamSubscription<Uint8List>? _packetSub;
@@ -199,7 +206,22 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   String? _connectedDeviceId;
   int? _activeMotionSessionId;
   Timer? _accelStopVerificationTimer;
+  Timer? _reconnectTimer;
   DateTime? _accelStopRequestedAt;
+  String? _lastConnectedDeviceId;
+  bool _manualDisconnectRequested = false;
+  bool _connecting = false;
+
+  Future<void> autoConnectToSavedRing() async {
+    try {
+      final deviceId = await _storage.getLastConnectedDeviceId();
+      if (deviceId == null || deviceId.isEmpty) return;
+      if (_service.status != BleConnectionStatus.disconnected) return;
+      await connect(deviceId, persistDevice: false);
+    } catch (e) {
+      state = state.copyWith(error: 'Auto-connect failed: $e');
+    }
+  }
 
   Future<void> startScan() async {
     state = state.copyWith(
@@ -247,7 +269,12 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     await _useCases.stopScan();
   }
 
-  Future<void> connect(String deviceId) async {
+  Future<void> connect(String deviceId, {bool persistDevice = true}) async {
+    if (_connecting) return;
+    _connecting = true;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    _manualDisconnectRequested = false;
     final deviceName = state.foundDevices[deviceId]?.name;
     state = state.copyWith(
       clearBattery: true,
@@ -275,27 +302,41 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       await _useCases.connect(deviceId);
     } catch (e) {
       state = state.copyWith(error: 'Connection failed: $e');
+      _connecting = false;
       return;
     }
 
     _connectedDeviceId = deviceId;
-    _persist(
-      () =>
-          _storage.setLastConnectedDevice(deviceId: deviceId, name: deviceName),
-    );
+    _lastConnectedDeviceId = deviceId;
+    if (persistDevice) {
+      _persist(
+        () => _storage.setLastConnectedDevice(
+          deviceId: deviceId,
+          name: deviceName,
+        ),
+      );
+    }
 
     _packetSub?.cancel();
     _packetSub = _useCases.packetStream.listen(_onPacket);
 
     await _requestBattery();
     await _loadLatestMotionSession(deviceId);
+    _connecting = false;
   }
 
   Future<void> disconnect() async {
+    _manualDisconnectRequested = true;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
     await _useCases.disconnect();
   }
 
   void _onDisconnected() {
+    final lostDeviceId = _connectedDeviceId ?? _lastConnectedDeviceId;
+    final shouldReconnect =
+        !_manualDisconnectRequested && lostDeviceId != null && !_connecting;
+
     for (final t in _rtTimeouts.values) {
       t.cancel();
     }
@@ -337,6 +378,32 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       clearAccelStopWarning: true,
       motionRecordingActive: false,
     );
+    if (shouldReconnect) {
+      _scheduleReconnect(lostDeviceId);
+    } else {
+      _manualDisconnectRequested = false;
+    }
+  }
+
+  void _scheduleReconnect(String deviceId) {
+    _reconnectTimer?.cancel();
+    state = state.copyWith(error: 'Connection lost - reconnecting soon.');
+    _reconnectTimer = Timer(_reconnectDelay, () {
+      unawaited(_reconnect(deviceId));
+    });
+  }
+
+  Future<void> _reconnect(String deviceId) async {
+    if (_manualDisconnectRequested ||
+        _service.status != BleConnectionStatus.disconnected) {
+      return;
+    }
+    await connect(deviceId, persistDevice: false);
+    if (_connectedDeviceId == deviceId) {
+      state = state.copyWith(clearError: true);
+    } else if (!_manualDisconnectRequested) {
+      _scheduleReconnect(deviceId);
+    }
   }
 
   Future<void> _requestBattery() async {
@@ -988,6 +1055,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     _dailyMeasurementTimeout?.cancel();
     _dailyMeasurementSilenceTimer?.cancel();
     _accelStopVerificationTimer?.cancel();
+    _reconnectTimer?.cancel();
     super.dispose();
   }
 }
