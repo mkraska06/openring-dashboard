@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import '../ble/ble_service.dart';
@@ -225,22 +226,25 @@ class _DashboardView extends ConsumerWidget {
                       onQuery: notifier.queryHrLogSettings,
                       onSet: notifier.setHrLogSettings,
                     ),
-                    // DER NEUE BUTTON:
-                    ListTile(
-                      leading: const Icon(Icons.storage, color: Colors.indigo),
-                      title: const Text('SQLite Datenbank einsehen'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        // Hier greifen wir auf den eben erstellten Provider zu
-                        final db = ref.read(databaseProvider);
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => DriftDbViewer(db),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(indent: 12, endIndent: 12),
+                    if (kDebugMode) ...[
+                      ListTile(
+                        leading: const Icon(
+                          Icons.storage,
+                          color: Colors.indigo,
+                        ),
+                        title: const Text('SQLite Datenbank einsehen'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          final db = ref.read(databaseProvider);
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => DriftDbViewer(db),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(indent: 12, endIndent: 12),
+                    ],
                     UtilityCard(
                       onSyncTime: notifier.syncTime,
                       onBlink: notifier.blinkTwice,

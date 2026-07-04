@@ -127,7 +127,6 @@ LazyDatabase _openConnection() {
   });
 }
 
-// Ganz unten in app_database.dart hinzufügen
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(() => db.close());
