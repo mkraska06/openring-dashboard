@@ -170,7 +170,7 @@ class OverlayController {
       final menu = Menu();
       await menu.buildFrom([
         MenuItemLabel(
-          label: 'Hauptfenster öffnen',
+          label: 'Open main window',
           onClicked: (_) => deactivateOverlay(),
         ),
         MenuItemLabel(
@@ -179,7 +179,7 @@ class OverlayController {
         ),
         MenuSeparator(),
         MenuItemLabel(
-          label: 'Beenden',
+          label: 'Quit',
           onClicked: (_) async {
             await deactivateOverlay();
             await windowManager.close();

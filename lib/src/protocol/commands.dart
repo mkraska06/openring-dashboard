@@ -63,7 +63,7 @@ class ReadingTypeInfo {
 
 /// Human-readable info for each supported [ReadingType].
 const Map<int, ReadingTypeInfo> readingTypeInfo = {
-  ReadingType.heartRate: ReadingTypeInfo(label: 'Herzfrequenz', unit: 'BPM'),
+  ReadingType.heartRate: ReadingTypeInfo(label: 'Heart rate', unit: 'BPM'),
   ReadingType.spo2: ReadingTypeInfo(label: 'SpO2', unit: '%'),
   ReadingType.hrv: ReadingTypeInfo(label: 'HRV', unit: 'ms'),
 };

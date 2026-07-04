@@ -45,19 +45,15 @@ class RealTimeReading {
 ///   Byte  2:  0x01 (RealTimeAction.start)
 ///   Bytes 3-14: zeros
 ///   Byte  15: checksum
-Uint8List makeStartRealTimeRequest(int readingType) => makePacket(
-      Cmd.startRealTime,
-      [readingType, RealTimeAction.start],
-    );
+Uint8List makeStartRealTimeRequest(int readingType) =>
+    makePacket(Cmd.startRealTime, [readingType, RealTimeAction.start]);
 
 /// Creates a 16-byte "continue" packet to keep the measurement alive.
 ///
 /// The ring stops sending after ~5 s of silence, so the client must
 /// periodically send this to keep the stream going.
-Uint8List makeContinueRealTimeRequest(int readingType) => makePacket(
-      Cmd.startRealTime,
-      [readingType, RealTimeAction.cont],
-    );
+Uint8List makeContinueRealTimeRequest(int readingType) =>
+    makePacket(Cmd.startRealTime, [readingType, RealTimeAction.cont]);
 
 /// Creates a 16-byte packet to stop a real-time measurement.
 ///
@@ -68,10 +64,8 @@ Uint8List makeContinueRealTimeRequest(int readingType) => makePacket(
 ///   Byte  3:  0x00
 ///   Bytes 4-14: zeros
 ///   Byte  15: checksum
-Uint8List makeStopRealTimeRequest(int readingType) => makePacket(
-      Cmd.stopRealTime,
-      [readingType, 0, 0],
-    );
+Uint8List makeStopRealTimeRequest(int readingType) =>
+    makePacket(Cmd.stopRealTime, [readingType, 0, 0]);
 
 /// Parses a 16-byte real-time measurement response packet.
 ///
@@ -88,9 +82,5 @@ RealTimeReading? parseRealTimeResponse(List<int> data) {
   if (!validatePacket(data)) return null;
   if (data[0] != Cmd.startRealTime) return null;
 
-  return RealTimeReading(
-    type: data[1],
-    errorCode: data[2],
-    value: data[3],
-  );
+  return RealTimeReading(type: data[1], errorCode: data[2], value: data[3]);
 }

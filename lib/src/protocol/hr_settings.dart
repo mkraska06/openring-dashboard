@@ -25,10 +25,8 @@ class HrLogSettings {
 ///   Byte  1:  0x01 (sub-command: query)
 ///   Bytes 2-14: zeros
 ///   Byte  15: checksum
-Uint8List makeHrLogSettingsQuery() => makePacket(
-      Cmd.heartRateLogSettings,
-      [0x01],
-    );
+Uint8List makeHrLogSettingsQuery() =>
+    makePacket(Cmd.heartRateLogSettings, [0x01]);
 
 /// Creates a 16-byte packet to update HR log settings.
 ///
@@ -40,9 +38,9 @@ Uint8List makeHrLogSettingsQuery() => makePacket(
 ///   Bytes 4-14: zeros
 ///   Byte  15: checksum
 Uint8List makeHrLogSettingsSet(HrLogSettings settings) => makePacket(
-      Cmd.heartRateLogSettings,
-      [0x02, settings.enabled ? 1 : 2, settings.intervalMinutes],
-    );
+  Cmd.heartRateLogSettings,
+  [0x02, settings.enabled ? 1 : 2, settings.intervalMinutes],
+);
 
 /// Parses a 16-byte HR log settings response packet.
 ///

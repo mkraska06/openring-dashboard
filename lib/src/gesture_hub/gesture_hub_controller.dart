@@ -26,7 +26,7 @@ class GestureHubState {
     this.mouseAxis = GestureHubMouseAxis.vertical,
     this.volume,
     this.volumeIntensity,
-    this.status = 'Inaktiv',
+    this.status = 'Inactive',
     this.error,
   });
 
@@ -141,7 +141,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
       clearPosition: true,
       mouseAxis: GestureHubMouseAxis.vertical,
       clearVolumeIntensity: true,
-      status: startedAccelerometer ? 'Sensor startet' : 'Bereit',
+      status: startedAccelerometer ? 'Starting sensor' : 'Ready',
       clearError: true,
     );
     _lastActionAt = null;
@@ -158,7 +158,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
     }
 
     _restartSampleTimeout();
-    state = state.copyWith(status: 'Warte auf Geste');
+    state = state.copyWith(status: 'Waiting for gesture');
   }
 
   Future<void> deactivate() async {
@@ -173,7 +173,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
       clearPosition: true,
       mouseAxis: GestureHubMouseAxis.vertical,
       clearVolumeIntensity: true,
-      status: 'Inaktiv',
+      status: 'Inactive',
     );
     _lastActionAt = null;
     _verticalStartedAt = null;
@@ -206,7 +206,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
         await _runPositionAction(
           reading: reading,
           scrollDelta: 120,
-          scrollStatus: 'Hoch',
+          scrollStatus: 'Up',
         );
       case GestureHubPosition.palmDown:
         _leaveVertical();
@@ -216,7 +216,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
         await _runPositionAction(
           reading: reading,
           scrollDelta: -120,
-          scrollStatus: 'Runter',
+          scrollStatus: 'Down',
         );
       case GestureHubPosition.palmSide:
         _leaveVertical();
@@ -284,7 +284,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
         clearError: true,
       );
     } catch (e) {
-      state = state.copyWith(error: 'Lautstärke setzen fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Failed to set volume: $e');
     }
   }
 
@@ -301,7 +301,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
       await _scrollService.scrollVertical(wheelDelta);
       state = state.copyWith(status: status, clearError: true);
     } catch (e) {
-      state = state.copyWith(error: 'Scrollen fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Failed to scroll: $e');
     }
   }
 
@@ -323,7 +323,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
       await _mouseService.moveRelative(dx: dx, dy: dy);
       state = state.copyWith(status: status, clearError: true);
     } catch (e) {
-      state = state.copyWith(error: 'Mausbewegung fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Failed to move mouse: $e');
     }
   }
 
@@ -336,7 +336,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
   void _restartSampleTimeout() {
     _sampleTimer?.cancel();
     _sampleTimer = Timer(_sampleTimeout, () {
-      state = state.copyWith(status: 'Keine Sensordaten');
+      state = state.copyWith(status: 'No sensor data');
       unawaited(deactivate());
     });
   }
@@ -357,7 +357,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
     final heldLongEnough =
         now.difference(_verticalStartedAt!) >= _controlSwitchHold;
     if (!_verticalSwitchArmed || !heldLongEnough) {
-      state = state.copyWith(status: 'Control wechseln halten');
+      state = state.copyWith(status: 'Hold to switch control');
       return;
     }
 
@@ -373,7 +373,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
       mouseAxis: nextControl == GestureHubControl.mouse
           ? GestureHubMouseAxis.vertical
           : state.mouseAxis,
-      status: '${_controlLabel(nextControl)} aktiv',
+      status: '${_controlLabel(nextControl)} active',
       clearVolumeIntensity: true,
       clearError: true,
     );
@@ -389,7 +389,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
     final heldLongEnough =
         now.difference(_mouseSideStartedAt!) >= _mouseAxisSwitchHold;
     if (!_mouseAxisSwitchArmed || !heldLongEnough) {
-      state = state.copyWith(status: 'Maus stop');
+      state = state.copyWith(status: 'Mouse stop');
       return;
     }
 
@@ -400,7 +400,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
     };
     state = state.copyWith(
       mouseAxis: nextAxis,
-      status: 'Achse ${_mouseAxisLabel(nextAxis)}',
+      status: 'Axis ${_mouseAxisLabel(nextAxis)}',
       clearError: true,
     );
   }
@@ -412,16 +412,16 @@ class GestureHubController extends StateNotifier<GestureHubState> {
       return;
     }
     if (!_mouseClickArmed) {
-      state = state.copyWith(status: 'Klick');
+      state = state.copyWith(status: 'Click');
       return;
     }
 
     _mouseClickArmed = false;
     try {
       await _mouseService.leftClick();
-      state = state.copyWith(status: 'Klick', clearError: true);
+      state = state.copyWith(status: 'Click', clearError: true);
     } catch (e) {
-      state = state.copyWith(error: 'Mausklick fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Failed to click: $e');
     }
   }
 
@@ -430,7 +430,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
       final volume = await _volumeService.getVolume();
       state = state.copyWith(volume: volume);
     } catch (e) {
-      state = state.copyWith(error: 'Lautstärke lesen fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Failed to read volume: $e');
     }
   }
 
@@ -443,7 +443,7 @@ class GestureHubController extends StateNotifier<GestureHubState> {
         keyDownHandler: (_) => toggle(),
       );
     } catch (e) {
-      state = state.copyWith(error: 'Gesture-Hub-Hotkey fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Gesture Hub hotkey failed: $e');
     }
   }
 
@@ -503,33 +503,33 @@ double volumeDeltaForGestureHubRoll(AccelerometerReading reading) {
 }
 
 String _volumeStatusForDelta(double delta) {
-  final direction = delta.isNegative ? 'leiser' : 'lauter';
+  final direction = delta.isNegative ? 'down' : 'up';
   final magnitude = delta.abs();
-  if (magnitude >= 0.08) return 'stark $direction';
+  if (magnitude >= 0.08) return 'fast $direction';
   if (magnitude >= 0.045) return direction;
-  return 'leicht $direction';
+  return 'slow $direction';
 }
 
 String _controlLabel(GestureHubControl control) {
   return switch (control) {
-    GestureHubControl.volume => 'Lautstärke',
-    GestureHubControl.scroll => 'Scrollen',
-    GestureHubControl.mouse => 'Maus',
+    GestureHubControl.volume => 'Volume',
+    GestureHubControl.scroll => 'Scroll',
+    GestureHubControl.mouse => 'Mouse',
   };
 }
 
 String _mouseAxisLabel(GestureHubMouseAxis axis) {
   return switch (axis) {
-    GestureHubMouseAxis.vertical => 'Vertikal',
+    GestureHubMouseAxis.vertical => 'Vertical',
     GestureHubMouseAxis.horizontal => 'Horizontal',
   };
 }
 
 String _mouseMoveStatus(GestureHubMouseAxis axis, int direction) {
   return switch (axis) {
-    GestureHubMouseAxis.vertical => direction > 0 ? 'Maus hoch' : 'Maus runter',
+    GestureHubMouseAxis.vertical => direction > 0 ? 'Mouse up' : 'Mouse down',
     GestureHubMouseAxis.horizontal =>
-      direction > 0 ? 'Maus links' : 'Maus rechts',
+      direction > 0 ? 'Mouse left' : 'Mouse right',
   };
 }
 

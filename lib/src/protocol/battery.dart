@@ -39,8 +39,5 @@ BatteryResponse? parseBatteryResponse(List<int> data) {
   if (!validatePacket(data)) return null;
   if (data[0] != Cmd.battery) return null;
 
-  return BatteryResponse(
-    level: data[1],
-    isCharging: data[2] != 0,
-  );
+  return BatteryResponse(level: data[1], isCharging: data[2] != 0);
 }

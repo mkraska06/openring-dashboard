@@ -22,10 +22,10 @@ class GestureHubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final sensorText = sensorStopping
-        ? 'Sensor stoppt'
+        ? 'Sensor stopping'
         : sensorRunning
-        ? 'Sensor aktiv'
-        : 'Sensor bereit';
+        ? 'Sensor active'
+        : 'Sensor ready';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -41,7 +41,7 @@ class GestureHubCard extends StatelessWidget {
                 Text('Gesture Hub', style: theme.textTheme.titleMedium),
                 const Spacer(),
                 _StatusPill(
-                  label: state.isActive ? 'Aktiv' : 'Inaktiv',
+                  label: state.isActive ? 'Active' : 'Inactive',
                   active: state.isActive,
                 ),
               ],
@@ -53,21 +53,21 @@ class GestureHubCard extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 ChoiceChip(
-                  label: const Text('Lautstärke'),
+                  label: const Text('Volume'),
                   selected: state.selectedControl == GestureHubControl.volume,
                   onSelected: state.isActive
                       ? null
                       : (_) => onControlSelected(GestureHubControl.volume),
                 ),
                 ChoiceChip(
-                  label: const Text('Scrollen'),
+                  label: const Text('Scroll'),
                   selected: state.selectedControl == GestureHubControl.scroll,
                   onSelected: state.isActive
                       ? null
                       : (_) => onControlSelected(GestureHubControl.scroll),
                 ),
                 ChoiceChip(
-                  label: const Text('Maus'),
+                  label: const Text('Mouse'),
                   selected: state.selectedControl == GestureHubControl.mouse,
                   onSelected: state.isActive
                       ? null
@@ -95,7 +95,7 @@ class GestureHubCard extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: sensorStopping ? null : onToggle,
                   icon: Icon(state.isActive ? Icons.stop : Icons.play_arrow),
-                  label: Text(state.isActive ? 'Beenden' : 'Aktivieren'),
+                  label: Text(state.isActive ? 'Stop' : 'Activate'),
                 ),
               ],
             ),
@@ -194,7 +194,7 @@ class GestureHubOverlay extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: _PositionTile(
-                          label: 'Wechsel',
+                          label: 'Switch',
                           icon: Icons.screen_rotation_alt_outlined,
                           active:
                               state.position == GestureHubPosition.palmVertical,
@@ -217,7 +217,7 @@ class GestureHubOverlay extends StatelessWidget {
                   if (state.selectedControl == GestureHubControl.mouse) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Faust = Klick',
+                      'Fist = click',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: theme.colorScheme.primary,
@@ -249,17 +249,17 @@ _GestureHubOverlayLabels _overlayLabels(
 ) {
   return switch (control) {
     GestureHubControl.volume => const _GestureHubOverlayLabels(
-      downLabel: 'Leiser',
+      downLabel: 'Down',
       sideLabel: 'Neutral',
-      upLabel: 'Lauter',
+      upLabel: 'Up',
       downIcon: Icons.volume_down,
       sideIcon: Icons.pan_tool_alt_outlined,
       upIcon: Icons.volume_up,
     ),
     GestureHubControl.scroll => const _GestureHubOverlayLabels(
-      downLabel: 'Runter',
+      downLabel: 'Down',
       sideLabel: 'Stop',
-      upLabel: 'Hoch',
+      upLabel: 'Up',
       downIcon: Icons.keyboard_arrow_down,
       sideIcon: Icons.pan_tool_alt_outlined,
       upIcon: Icons.keyboard_arrow_up,
@@ -267,17 +267,17 @@ _GestureHubOverlayLabels _overlayLabels(
     GestureHubControl.mouse =>
       mouseAxis == GestureHubMouseAxis.vertical
           ? const _GestureHubOverlayLabels(
-              downLabel: 'Runter',
-              sideLabel: 'Achse',
-              upLabel: 'Hoch',
+              downLabel: 'Down',
+              sideLabel: 'Axis',
+              upLabel: 'Up',
               downIcon: Icons.keyboard_arrow_down,
               sideIcon: Icons.swap_horiz,
               upIcon: Icons.keyboard_arrow_up,
             )
           : const _GestureHubOverlayLabels(
-              downLabel: 'Rechts',
-              sideLabel: 'Achse',
-              upLabel: 'Links',
+              downLabel: 'Right',
+              sideLabel: 'Axis',
+              upLabel: 'Left',
               downIcon: Icons.keyboard_arrow_right,
               sideIcon: Icons.swap_horiz,
               upIcon: Icons.keyboard_arrow_left,
@@ -287,7 +287,7 @@ _GestureHubOverlayLabels _overlayLabels(
 
 String _mouseAxisLabel(GestureHubMouseAxis axis) {
   return switch (axis) {
-    GestureHubMouseAxis.vertical => 'Vertikal',
+    GestureHubMouseAxis.vertical => 'Vertical',
     GestureHubMouseAxis.horizontal => 'Horizontal',
   };
 }

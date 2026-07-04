@@ -87,10 +87,8 @@ class HrLogParser {
 
     // First data packet (contains base timestamp)
     if (subType == 1) {
-      _baseTimestamp = data[2] |
-          (data[3] << 8) |
-          (data[4] << 16) |
-          (data[5] << 24);
+      _baseTimestamp =
+          data[2] | (data[3] << 8) | (data[4] << 16) | (data[5] << 24);
       // 9 HR values in bytes 6-14
       for (var i = 6; i <= 14; i++) {
         _rawValues.add(data[i]);
@@ -105,7 +103,8 @@ class HrLogParser {
     _receivedPackets++;
 
     // Check if this is the final data packet
-    final isDone = _expectedPackets != null &&
+    final isDone =
+        _expectedPackets != null &&
         (_receivedPackets >= _expectedPackets! - 1 || subType == 23);
 
     if (!isDone) return null;

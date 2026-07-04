@@ -41,7 +41,11 @@ void main() {
 
   group('parseRealTimeResponse', () {
     test('parses valid HR response with value', () {
-      final packet = makePacket(Cmd.startRealTime, [ReadingType.heartRate, 0, 72]);
+      final packet = makePacket(Cmd.startRealTime, [
+        ReadingType.heartRate,
+        0,
+        72,
+      ]);
       final r = parseRealTimeResponse(packet);
       expect(r, isNotNull);
       expect(r!.type, ReadingType.heartRate);
@@ -51,7 +55,11 @@ void main() {
     });
 
     test('parses pending HR response (value 0)', () {
-      final packet = makePacket(Cmd.startRealTime, [ReadingType.heartRate, 0, 0]);
+      final packet = makePacket(Cmd.startRealTime, [
+        ReadingType.heartRate,
+        0,
+        0,
+      ]);
       final r = parseRealTimeResponse(packet);
       expect(r!.hasValue, isFalse);
     });
@@ -72,7 +80,11 @@ void main() {
     });
 
     test('reports error code', () {
-      final packet = makePacket(Cmd.startRealTime, [ReadingType.heartRate, 3, 0]);
+      final packet = makePacket(Cmd.startRealTime, [
+        ReadingType.heartRate,
+        3,
+        0,
+      ]);
       final r = parseRealTimeResponse(packet);
       expect(r!.errorCode, 3);
       expect(r.hasValue, isFalse);
@@ -84,7 +96,11 @@ void main() {
     });
 
     test('returns null for bad checksum', () {
-      final p = makePacket(Cmd.startRealTime, [ReadingType.heartRate, 0, 72]).toList();
+      final p = makePacket(Cmd.startRealTime, [
+        ReadingType.heartRate,
+        0,
+        72,
+      ]).toList();
       p[15] ^= 0xFF;
       expect(parseRealTimeResponse(p), isNull);
     });

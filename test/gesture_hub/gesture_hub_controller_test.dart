@@ -103,7 +103,7 @@ void main() {
     await controller.onAccelerometerReading(_openUp);
 
     expect(fixture.scrollService.deltas, [120]);
-    expect(fixture.container.read(gestureHubControllerProvider).status, 'Hoch');
+    expect(fixture.container.read(gestureHubControllerProvider).status, 'Up');
   });
 
   test('scroll control sends negative delta for palm down', () async {
@@ -118,10 +118,7 @@ void main() {
     await controller.onAccelerometerReading(_openDown);
 
     expect(fixture.scrollService.deltas, [-120]);
-    expect(
-      fixture.container.read(gestureHubControllerProvider).status,
-      'Runter',
-    );
+    expect(fixture.container.read(gestureHubControllerProvider).status, 'Down');
   });
 
   test('scroll control does not scroll in neutral position', () async {

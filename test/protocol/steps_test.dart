@@ -40,7 +40,11 @@ void main() {
       final parser = StepParser();
 
       // Init packet
-      final init = makePacket(Cmd.getSteps, [0xF0, 0, 1]); // new calorie protocol
+      final init = makePacket(Cmd.getSteps, [
+        0xF0,
+        0,
+        1,
+      ]); // new calorie protocol
       expect(parser.processPacket(init), isNull);
 
       // Data packet: BCD date 26/04/01, timeIndex=4 (1:00), packet 0/1,

@@ -261,7 +261,7 @@ class ActivityBarChart extends StatelessWidget {
                         formatChartTooltip(
                           time: point.startedAt,
                           value: point.steps,
-                          unit: 'Schritte',
+                          unit: 'Steps',
                         ),
                         const TextStyle(color: Colors.white),
                       );

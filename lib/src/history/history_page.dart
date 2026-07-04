@@ -75,7 +75,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               actions: [
                 TextButton(
                   onPressed: notifier.load,
-                  child: const Text('Erneut laden'),
+                  child: const Text('Retry'),
                 ),
               ],
             ),
@@ -90,15 +90,14 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           )
         else if (historyDay == null)
           const _EmptyHistory(
-            title: 'Noch kein Ring gespeichert',
-            message:
-                'Verbinde zuerst einen Ring, damit OpenRing gespeicherte Werte anzeigen kann.',
+            title: 'No ring saved yet',
+            message: 'Connect a ring first so OpenRing can show stored values.',
           )
         else ...[
           _DeviceLine(historyDay: historyDay),
           const SizedBox(height: 12),
           _VitalHistoryCard(
-            title: 'Herzfrequenz',
+            title: 'Heart rate',
             accent: Colors.red,
             series: historyDay.series(vitalKindHeartRate),
             valueLabel: 'BPM',
@@ -235,16 +234,16 @@ class _HistoryHeader extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: 'Vorheriger Tag',
+          tooltip: 'Previous day',
           onPressed: isLoading ? null : onPrevious,
           icon: const Icon(Icons.chevron_left),
         ),
         OutlinedButton(
           onPressed: isLoading ? null : onToday,
-          child: const Text('Heute'),
+          child: const Text('Today'),
         ),
         IconButton(
-          tooltip: 'Naechster Tag',
+          tooltip: 'Next day',
           onPressed: isLoading ? null : onNext,
           icon: const Icon(Icons.chevron_right),
         ),
@@ -324,7 +323,7 @@ class _VitalHistoryCard extends StatelessWidget {
             _RangeSelector(range: range, onChanged: onRangeChanged),
             const SizedBox(height: 10),
             if (points.isEmpty)
-              const _EmptyInline(message: 'Keine Daten fuer diesen Tag.')
+              const _EmptyInline(message: 'No data for this day.')
             else ...[
               SizedBox(
                 height: _historyChartHeight,
@@ -357,7 +356,7 @@ class _VitalHistoryCard extends StatelessWidget {
                     value: '${series!.max} $valueLabel',
                   ),
                   _MetricPill(
-                    label: 'Letzter',
+                    label: 'Latest',
                     value:
                         '${series!.latest} $valueLabel um ${_formatTime(series!.latestPoint!.measuredAt)}',
                   ),
@@ -404,7 +403,7 @@ class _ActivityHistoryCard extends StatelessWidget {
               children: [
                 const Icon(Icons.directions_walk, color: Colors.green),
                 const SizedBox(width: 8),
-                Text('Aktivitaet', style: theme.textTheme.titleMedium),
+                Text('Activity', style: theme.textTheme.titleMedium),
                 const Spacer(),
                 Text(
                   '${activity.points.length} Intervalle',
@@ -418,7 +417,7 @@ class _ActivityHistoryCard extends StatelessWidget {
             _RangeSelector(range: range, onChanged: onRangeChanged),
             const SizedBox(height: 10),
             if (activity.isEmpty)
-              const _EmptyInline(message: 'Keine Schritte fuer diesen Tag.')
+              const _EmptyInline(message: 'No steps for this day.')
             else ...[
               SizedBox(
                 height: _historyChartHeight,
@@ -436,20 +435,17 @@ class _ActivityHistoryCard extends StatelessWidget {
                 spacing: 16,
                 runSpacing: 8,
                 children: [
+                  _MetricPill(label: 'Steps', value: '${activity.totalSteps}'),
                   _MetricPill(
-                    label: 'Schritte',
-                    value: '${activity.totalSteps}',
-                  ),
-                  _MetricPill(
-                    label: 'Kalorien',
+                    label: 'Calories',
                     value: '${activity.totalCalories} kcal',
                   ),
                   _MetricPill(
-                    label: 'Distanz',
+                    label: 'Distance',
                     value: '${activity.totalDistanceMeters} m',
                   ),
                   _MetricPill(
-                    label: 'Letztes Intervall',
+                    label: 'Latest interval',
                     value: _formatTime(activity.latestPoint!.startedAt),
                   ),
                 ],

@@ -29,10 +29,10 @@ class HeartRateReading {
 ///   Byte  2:  0x01 (RealTimeAction.start)
 ///   Bytes 3-14: zeros
 ///   Byte  15: checksum
-Uint8List makeStartHeartRateRequest() => makePacket(
-      Cmd.startRealTime,
-      [ReadingType.heartRate, RealTimeAction.start],
-    );
+Uint8List makeStartHeartRateRequest() => makePacket(Cmd.startRealTime, [
+  ReadingType.heartRate,
+  RealTimeAction.start,
+]);
 
 /// Creates a 16-byte packet to tell the ring we're still listening.
 ///
@@ -45,10 +45,8 @@ Uint8List makeStartHeartRateRequest() => makePacket(
 ///   Byte  2:  0x03 (RealTimeAction.continue)
 ///   Bytes 3-14: zeros
 ///   Byte  15: checksum
-Uint8List makeContinueHeartRateRequest() => makePacket(
-      Cmd.startRealTime,
-      [ReadingType.heartRate, RealTimeAction.cont],
-    );
+Uint8List makeContinueHeartRateRequest() =>
+    makePacket(Cmd.startRealTime, [ReadingType.heartRate, RealTimeAction.cont]);
 
 /// Creates a 16-byte packet to stop real-time heart-rate measurement.
 ///
@@ -59,10 +57,8 @@ Uint8List makeContinueHeartRateRequest() => makePacket(
 ///   Byte  3:  0x00
 ///   Bytes 4-14: zeros
 ///   Byte  15: checksum
-Uint8List makeStopHeartRateRequest() => makePacket(
-      Cmd.stopRealTime,
-      [ReadingType.heartRate, 0, 0],
-    );
+Uint8List makeStopHeartRateRequest() =>
+    makePacket(Cmd.stopRealTime, [ReadingType.heartRate, 0, 0]);
 
 /// Parses a 16-byte real-time heart-rate response packet.
 ///
@@ -80,8 +76,5 @@ HeartRateReading? parseHeartRateResponse(List<int> data) {
   if (data[0] != Cmd.startRealTime) return null;
   if (data[1] != ReadingType.heartRate) return null;
 
-  return HeartRateReading(
-    errorCode: data[2],
-    bpm: data[3],
-  );
+  return HeartRateReading(errorCode: data[2], bpm: data[3]);
 }

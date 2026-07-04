@@ -104,7 +104,7 @@ void main() {
       expect(notifier.state.accelStopping, isFalse);
       expect(
         notifier.state.accelStopWarning,
-        'Stop gesendet, Ring streamt weiter',
+        'Stop sent, ring keeps streaming',
       );
     },
   );
@@ -147,10 +147,7 @@ void main() {
 
       expect(notifier.state.accelStopping, isTrue);
       expect(notifier.state.accelStopCleanupSent, isFalse);
-      expect(
-        notifier.state.error,
-        startsWith('Optische Stop-Sequenz fehlgeschlagen:'),
-      );
+      expect(notifier.state.error, startsWith('Visual stop sequence failed:'));
 
       await Future<void>.delayed(const Duration(milliseconds: 40));
 

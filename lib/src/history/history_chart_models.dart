@@ -6,7 +6,7 @@ enum HistoryChartRange {
   live10m('10m', Duration(minutes: 10)),
   live30m('30m', Duration(minutes: 30)),
   twoHours('2h', Duration(hours: 2)),
-  day('Tag', Duration(days: 1));
+  day('Day', Duration(days: 1));
 
   const HistoryChartRange(this.label, this.duration);
 

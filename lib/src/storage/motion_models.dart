@@ -27,9 +27,9 @@ enum GestureHandShape { open, fist }
 enum GestureHandPose { down, side, up, vertical }
 
 enum GestureSeparationStatus {
-  clear('klar trennbar'),
-  uncertain('unsicher'),
-  moreData('mehr Daten');
+  clear('clear'),
+  uncertain('uncertain'),
+  moreData('more data');
 
   const GestureSeparationStatus(this.label);
 

@@ -43,7 +43,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Noch kein Ring gespeichert'), findsOneWidget);
+    expect(find.text('No ring saved yet'), findsOneWidget);
   });
 
   testWidgets('History renders sample HR chart controls and unit axis', (
@@ -79,7 +79,7 @@ void main() {
     expect(find.text('10m'), findsWidgets);
     expect(find.text('30m'), findsWidgets);
     expect(find.text('2h'), findsWidgets);
-    expect(find.text('Tag'), findsWidgets);
+    expect(find.text('Day'), findsWidgets);
   });
 
   testWidgets('Motion lab renders recording controls and empty plot state', (
@@ -107,7 +107,7 @@ void main() {
 
     expect(find.text('Motion Lab'), findsOneWidget);
     expect(find.text('Record'), findsOneWidget);
-    expect(find.text('Noch keine Motion-Samples.'), findsOneWidget);
+    expect(find.text('No motion samples yet.'), findsOneWidget);
   });
 
   testWidgets('Accelerometer card renders button states and diagnostics', (
@@ -126,7 +126,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Sensor starten'), findsOneWidget);
+    expect(find.text('Start sensor'), findsOneWidget);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -147,8 +147,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Sensor stoppen'), findsOneWidget);
-    expect(find.textContaining('letzter Befehl: start'), findsOneWidget);
+    expect(find.text('Stop sensor'), findsOneWidget);
+    expect(find.textContaining('last command: start'), findsOneWidget);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -163,19 +163,16 @@ void main() {
             isStopping: true,
             lastCommand: 'stop',
             stopCleanupSent: true,
-            stopWarning: 'Stop gesendet, Ring streamt weiter',
+            stopWarning: 'Stop sent, ring keeps streaming',
             onToggle: () {},
           ),
         ),
       ),
     );
 
-    expect(find.text('Stoppe...'), findsOneWidget);
-    expect(
-      find.textContaining('optische Stop-Sequenz gesendet'),
-      findsOneWidget,
-    );
-    expect(find.text('Stop gesendet, Ring streamt weiter'), findsOneWidget);
+    expect(find.text('Stopping...'), findsOneWidget);
+    expect(find.textContaining('visual stop sequence sent'), findsOneWidget);
+    expect(find.text('Stop sent, ring keeps streaming'), findsOneWidget);
   });
 
   testWidgets('Gesture Hub card renders volume and scroll control states', (
@@ -197,13 +194,13 @@ void main() {
     );
 
     expect(find.text('Gesture Hub'), findsOneWidget);
-    expect(find.text('Lautstärke'), findsOneWidget);
-    expect(find.text('Scrollen'), findsOneWidget);
-    expect(find.text('Maus'), findsOneWidget);
-    expect(find.text('Inaktiv'), findsWidgets);
-    expect(find.text('Aktivieren'), findsOneWidget);
+    expect(find.text('Volume'), findsOneWidget);
+    expect(find.text('Scroll'), findsOneWidget);
+    expect(find.text('Mouse'), findsOneWidget);
+    expect(find.text('Inactive'), findsWidgets);
+    expect(find.text('Activate'), findsOneWidget);
 
-    await tester.tap(find.text('Aktivieren'));
+    await tester.tap(find.text('Activate'));
     expect(toggled, isTrue);
 
     await tester.pumpWidget(
@@ -213,7 +210,7 @@ void main() {
             state: const GestureHubState(
               selectedControl: GestureHubControl.volume,
               isActive: true,
-              status: 'Warte auf Geste',
+              status: 'Waiting for gesture',
               volume: 0.42,
             ),
             sensorRunning: true,
@@ -225,9 +222,9 @@ void main() {
       ),
     );
 
-    expect(find.text('Aktiv'), findsOneWidget);
-    expect(find.text('Beenden'), findsOneWidget);
-    expect(find.text('Sensor aktiv'), findsOneWidget);
+    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('Stop'), findsOneWidget);
+    expect(find.text('Sensor active'), findsOneWidget);
     expect(find.text('42%'), findsOneWidget);
   });
 
@@ -242,7 +239,7 @@ void main() {
               selectedControl: GestureHubControl.scroll,
               isActive: true,
               position: GestureHubPosition.palmDown,
-              status: 'Runter',
+              status: 'Down',
             ),
           ),
         ),
@@ -250,10 +247,10 @@ void main() {
     );
 
     expect(find.text('Gesture Hub'), findsOneWidget);
-    expect(find.text('Runter'), findsWidgets);
+    expect(find.text('Down'), findsWidgets);
     expect(find.text('Stop'), findsOneWidget);
-    expect(find.text('Hoch'), findsOneWidget);
-    expect(find.text('Wechsel'), findsOneWidget);
+    expect(find.text('Up'), findsOneWidget);
+    expect(find.text('Switch'), findsOneWidget);
     expect(find.text('--%'), findsNothing);
   });
 
@@ -269,8 +266,8 @@ void main() {
               isActive: true,
               position: GestureHubPosition.palmUp,
               volume: 0.8,
-              volumeIntensity: 'stark lauter',
-              status: 'Lauter',
+              volumeIntensity: 'fast up',
+              status: 'Up',
             ),
           ),
         ),
@@ -278,11 +275,11 @@ void main() {
     );
 
     expect(find.text('Gesture Hub'), findsOneWidget);
-    expect(find.text('Leiser'), findsOneWidget);
+    expect(find.text('Down'), findsOneWidget);
     expect(find.text('Neutral'), findsOneWidget);
-    expect(find.text('Lauter'), findsWidgets);
-    expect(find.text('Wechsel'), findsOneWidget);
-    expect(find.text('stark lauter'), findsOneWidget);
+    expect(find.text('Up'), findsWidgets);
+    expect(find.text('Switch'), findsOneWidget);
+    expect(find.text('fast up'), findsOneWidget);
     expect(find.text('80%'), findsOneWidget);
   });
 
@@ -298,7 +295,7 @@ void main() {
               isActive: true,
               mouseAxis: GestureHubMouseAxis.horizontal,
               position: GestureHubPosition.palmDown,
-              status: 'Maus rechts',
+              status: 'Mouse right',
             ),
           ),
         ),
@@ -307,10 +304,10 @@ void main() {
 
     expect(find.text('Gesture Hub'), findsOneWidget);
     expect(find.text('Horizontal'), findsOneWidget);
-    expect(find.text('Rechts'), findsOneWidget);
-    expect(find.text('Achse'), findsOneWidget);
-    expect(find.text('Links'), findsOneWidget);
-    expect(find.text('Faust = Klick'), findsOneWidget);
+    expect(find.text('Right'), findsOneWidget);
+    expect(find.text('Axis'), findsOneWidget);
+    expect(find.text('Left'), findsOneWidget);
+    expect(find.text('Fist = click'), findsOneWidget);
   });
 
   testWidgets('Motion lab renders a chart for session samples', (
@@ -361,10 +358,10 @@ void main() {
       ),
     );
 
-    expect(find.text('Letzte Session | 2 Samples'), findsOneWidget);
+    expect(find.text('Latest session | 2 Samples'), findsOneWidget);
     expect(find.text('|a|'), findsOneWidget);
-    expect(find.text('Session-Auswertung'), findsOneWidget);
-    expect(find.text('Noch keine Motion-Samples.'), findsNothing);
+    expect(find.text('Session analysis'), findsOneWidget);
+    expect(find.text('No motion samples yet.'), findsNothing);
   });
 
   testWidgets('Motion lab renders gesture presets and applies selection', (
@@ -476,6 +473,6 @@ void main() {
     expect(find.text('Gesture-Space'), findsOneWidget);
     expect(find.textContaining('open side'), findsWidgets);
     expect(find.textContaining('fist side'), findsWidgets);
-    expect(find.textContaining('klar trennbar'), findsWidgets);
+    expect(find.textContaining('clear'), findsWidgets);
   });
 }

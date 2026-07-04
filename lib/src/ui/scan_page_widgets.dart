@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_ble/universal_ble.dart' hide BleService;
 import 'package:window_manager/window_manager.dart';
@@ -127,10 +128,10 @@ class ScanStatusIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, label) = switch (status) {
-      BleConnectionStatus.disconnected => (Colors.red, 'Getrennt'),
+      BleConnectionStatus.disconnected => (Colors.red, 'Disconnected'),
       BleConnectionStatus.scanning => (Colors.orange, 'Scan...'),
-      BleConnectionStatus.connecting => (Colors.amber, 'Verbinde...'),
-      BleConnectionStatus.connected => (Colors.green, 'Verbunden'),
+      BleConnectionStatus.connecting => (Colors.amber, 'Connecting...'),
+      BleConnectionStatus.connected => (Colors.green, 'Connected'),
     };
 
     return Row(
@@ -221,11 +222,11 @@ class BatteryCard extends StatelessWidget {
               ? Icons.battery_charging_full
               : Icons.battery_full,
         ),
-        title: const Text('Batterie'),
+        title: const Text('Battery'),
         trailing: Text(
           battery == null
               ? '\u2014'
-              : '${battery!.level}%${battery!.isCharging ? " (laedt)" : ""}',
+              : '${battery!.level}%${battery!.isCharging ? " (charging)" : ""}',
           style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
@@ -250,9 +251,7 @@ class DailyMeasurementButton extends StatelessWidget {
       child: FilledButton.icon(
         onPressed: onToggle,
         icon: Icon(isRunning ? Icons.stop : Icons.play_arrow),
-        label: Text(
-          isRunning ? 'Tagesmessung stoppen' : 'Tagesmessung starten',
-        ),
+        label: Text(isRunning ? 'Stop daily cycle' : 'Start daily cycle'),
       ),
     );
   }
@@ -300,14 +299,14 @@ class RealTimeCard extends StatelessWidget {
     if (isRunning) {
       mainText = reading != null && reading!.hasValue
           ? '${reading!.value} $unit'
-          : 'Messe...';
+          : 'Measuring...';
     } else {
       mainText = reading != null && reading!.hasValue
-          ? '${reading!.value} $unit (gestoppt)'
+          ? '${reading!.value} $unit (stopped)'
           : '\u2014';
     }
 
-    final debugText = isRunning && reading != null
+    final debugText = kDebugMode && isRunning && reading != null
         ? 'raw: err=${reading!.errorCode} val=${reading!.value}'
         : null;
 
@@ -342,7 +341,7 @@ class RealTimeCard extends StatelessWidget {
                       backgroundColor: Colors.red.shade700,
                     )
                   : null,
-              child: Text(isRunning ? 'Stoppen' : 'Starten'),
+              child: Text(isRunning ? 'Stop' : 'Start'),
             ),
           ],
         ),
@@ -385,23 +384,23 @@ class AccelerometerCard extends StatelessWidget {
           'Z=${reading!.zG.toStringAsFixed(3)} g  '
           '|a|=${reading!.magnitudeG.toStringAsFixed(3)} g';
     } else if (isRunning) {
-      mainText = 'Warte auf Daten...';
+      mainText = 'Waiting for data...';
       scaleText = null;
     } else {
       mainText = '\u2014';
       scaleText = null;
     }
     final diagnostics = <String>[
-      if (lastCommand != null) 'letzter Befehl: $lastCommand',
+      if (lastCommand != null) 'last command: $lastCommand',
       if (lastSampleAt != null)
-        'letztes Sample vor ${_relativeSeconds(lastSampleAt!)}s',
-      if (stopCleanupSent) 'optische Stop-Sequenz gesendet',
+        'last sample ${_relativeSeconds(lastSampleAt!)}s ago',
+      if (stopCleanupSent) 'visual stop sequence sent',
     ];
     final buttonLabel = isStopping
-        ? 'Stoppe...'
+        ? 'Stopping...'
         : isRunning
-        ? 'Sensor stoppen'
-        : 'Sensor starten';
+        ? 'Stop sensor'
+        : 'Start sensor';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -503,10 +502,10 @@ class MotionLabCard extends StatelessWidget {
     final calibration = analyzeGestureCalibration(recordings);
     final poseAnalysis = analyzeGesturePoseSpace(recordings);
     final label = isRecording
-        ? 'Aufnahme laeuft'
+        ? 'Recording'
         : recording == null
-        ? 'Keine Motion-Session'
-        : 'Letzte Session';
+        ? 'No motion session'
+        : 'Latest session';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -577,7 +576,7 @@ class MotionLabCard extends StatelessWidget {
             SizedBox(
               height: 230,
               child: samples.isEmpty
-                  ? const Center(child: Text('Noch keine Motion-Samples.'))
+                  ? const Center(child: Text('No motion samples yet.'))
                   : MotionSessionChart(samples: samples),
             ),
             if (stats != null) ...[
@@ -610,18 +609,18 @@ class MotionSessionStatsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Session-Auswertung',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        Text('Session analysis', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 6),
         Wrap(
           spacing: 8,
           runSpacing: 6,
           children: [
-            _MetricChip(label: 'Dauer', value: '${stats.duration.inSeconds}s'),
+            _MetricChip(
+              label: 'Duration',
+              value: '${stats.duration.inSeconds}s',
+            ),
             _MetricChip(label: 'Dominant', value: stats.dominantAxis),
-            _MetricChip(label: 'Stabil', value: stats.isStable ? 'ja' : 'nein'),
+            _MetricChip(label: 'Stable', value: stats.isStable ? 'yes' : 'no'),
             _MetricChip(
               label: 'Delta',
               value: stats.averageSampleDeltaG.toStringAsFixed(3),
@@ -664,9 +663,9 @@ class GestureCalibrationView extends StatelessWidget {
           children: [
             _MetricChip(
               label: 'Status',
-              value: summary.ready ? 'bereit' : 'mehr Daten',
+              value: summary.ready ? 'ready' : 'more data',
             ),
-            _MetricChip(label: 'Beste Achse', value: summary.bestAxis ?? '-'),
+            _MetricChip(label: 'Best axis', value: summary.bestAxis ?? '-'),
             _MetricChip(
               label: 'Trennung',
               value: summary.axisSeparationG.toStringAsFixed(2),
@@ -983,7 +982,7 @@ class HrLogCard extends StatelessWidget {
               children: [
                 const Icon(Icons.history, color: Colors.red),
                 const SizedBox(width: 8),
-                const Text('HR-Verlauf'),
+                const Text('Heart-rate log'),
                 const Spacer(),
                 ElevatedButton(
                   onPressed: isLoading ? null : () => onRequest(DateTime.now()),
@@ -993,14 +992,14 @@ class HrLogCard extends StatelessWidget {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Heute laden'),
+                      : const Text('Load today'),
                 ),
               ],
             ),
             if (hrLog != null) ...[
               const SizedBox(height: 8),
               Text(
-                '${hrLog!.entries.length} Eintr\u00e4ge (Intervall: ${hrLog!.intervalMinutes} min)',
+                '${hrLog!.entries.length} entries (interval: ${hrLog!.intervalMinutes} min)',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               if (hrLog!.entries.isNotEmpty)
@@ -1034,7 +1033,7 @@ class HrLogCard extends StatelessWidget {
               if (hrLog!.entries.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 4),
-                  child: Text('Keine Daten f\u00fcr diesen Tag.'),
+                  child: Text('No data for this day.'),
                 ),
             ],
           ],
@@ -1079,7 +1078,7 @@ class StepsCard extends StatelessWidget {
               children: [
                 const Icon(Icons.directions_walk, color: Colors.green),
                 const SizedBox(width: 8),
-                const Text('Schritte'),
+                const Text('Steps'),
                 const Spacer(),
                 ElevatedButton(
                   onPressed: isLoading ? null : () => onRequest(DateTime.now()),
@@ -1089,28 +1088,28 @@ class StepsCard extends StatelessWidget {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Heute laden'),
+                      : const Text('Load today'),
                 ),
               ],
             ),
             if (dailyActivity != null || steps != null) ...[
               const SizedBox(height: 8),
               if (dailyActivity == null && steps!.isEmpty)
-                const Text('Keine Daten f\u00fcr diesen Tag.')
+                const Text('No data for this day.')
               else ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    StatColumn(label: 'Schritte', value: '$totalSteps'),
-                    StatColumn(label: 'Kalorien', value: '$totalCal kcal'),
-                    StatColumn(label: 'Distanz', value: '${totalDist}m'),
+                    StatColumn(label: 'Steps', value: '$totalSteps'),
+                    StatColumn(label: 'Calories', value: '$totalCal kcal'),
+                    StatColumn(label: 'Distance', value: '${totalDist}m'),
                   ],
                 ),
                 if (dailyActivity != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      'Aktueller Tagesstand',
+                      'Current daily total',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -1166,17 +1165,17 @@ class HrLogSettingsCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('HR-Log Einstellungen'),
+                  const Text('Heart-rate log settings'),
                   if (settings != null)
                     Text(
-                      '${settings!.enabled ? "Aktiv" : "Inaktiv"} \u2014 alle ${settings!.intervalMinutes} min',
+                      '${settings!.enabled ? "Enabled" : "Disabled"} \u2014 every ${settings!.intervalMinutes} min',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                 ],
               ),
             ),
             if (settings == null)
-              OutlinedButton(onPressed: onQuery, child: const Text('Abfragen'))
+              OutlinedButton(onPressed: onQuery, child: const Text('Query'))
             else
               OutlinedButton(
                 onPressed: () {
@@ -1187,7 +1186,7 @@ class HrLogSettingsCard extends StatelessWidget {
                     ),
                   );
                 },
-                child: Text(settings!.enabled ? 'Deaktivieren' : 'Aktivieren'),
+                child: Text(settings!.enabled ? 'Disable' : 'Enable'),
               ),
           ],
         ),
@@ -1217,7 +1216,7 @@ class UtilityCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Befehle'),
+            const Text('Device commands'),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -1226,40 +1225,40 @@ class UtilityCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: onSyncTime,
                   icon: const Icon(Icons.access_time),
-                  label: const Text('Zeit sync'),
+                  label: const Text('Sync time'),
                 ),
                 OutlinedButton.icon(
                   onPressed: onBlink,
                   icon: const Icon(Icons.lightbulb_outline),
-                  label: const Text('Blinken'),
+                  label: const Text('Blink'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (ctx) => AlertDialog(
-                        title: const Text('Ring neustarten?'),
+                        title: const Text('Restart ring?'),
                         content: const Text(
-                          'Der Ring wird neu gestartet und die Verbindung getrennt.',
+                          'The ring will restart and disconnect.',
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx),
-                            child: const Text('Abbrechen'),
+                            child: const Text('Cancel'),
                           ),
                           TextButton(
                             onPressed: () {
                               Navigator.pop(ctx);
                               onReboot();
                             },
-                            child: const Text('Neustarten'),
+                            child: const Text('Restart'),
                           ),
                         ],
                       ),
                     );
                   },
                   icon: const Icon(Icons.restart_alt),
-                  label: const Text('Neustart'),
+                  label: const Text('Restart'),
                 ),
               ],
             ),

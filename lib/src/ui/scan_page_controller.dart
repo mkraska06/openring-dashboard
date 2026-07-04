@@ -417,7 +417,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     } catch (e) {
       final info = readingTypeInfo[readingType];
       await _advanceDailyMeasurement(
-        error: '${info?.label ?? "Messung"} start failed: $e',
+        error: '${info?.label ?? "Measurement"} start failed: $e',
       );
       return;
     }
@@ -428,7 +428,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       unawaited(
         _advanceDailyMeasurement(
           error:
-              '${info?.label ?? "Messung"} Timeout - naechste Messung startet.',
+              '${info?.label ?? "Measurement"} timeout - next measurement starts.',
         ),
       );
     });
@@ -484,7 +484,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     } catch (e) {
       final info = readingTypeInfo[readingType];
       state = state.copyWith(
-        error: '${info?.label ?? "Messung"} start failed: $e',
+        error: '${info?.label ?? "Measurement"} start failed: $e',
       );
       return;
     }
@@ -498,7 +498,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       _stopRealTime(readingType);
       state = state.copyWith(
         error:
-            'Kein Messwert erkannt - Ring richtig anlegen und erneut versuchen.',
+            'No measurement detected - wear the ring correctly and try again.',
       );
     });
   }
@@ -534,7 +534,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         if (!state.runningMeasurements.contains(readingType)) return;
         _stopRealTime(readingType);
         state = state.copyWith(
-          error: 'Kein Messwert mehr erkannt - Ring pruefen.',
+          error: 'No measurement detected anymore - check the ring.',
         );
       });
     });
@@ -548,7 +548,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       await _useCases.requestHrLog(day);
     } catch (e) {
       _hrLogParser = null;
-      state = state.copyWith(hrLogLoading: false, error: 'HR-Log Fehler: $e');
+      state = state.copyWith(hrLogLoading: false, error: 'HR log error: $e');
     }
   }
 
@@ -556,7 +556,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     try {
       await _useCases.queryHrLogSettings();
     } catch (e) {
-      state = state.copyWith(error: 'HR-Settings Fehler: $e');
+      state = state.copyWith(error: 'HR settings error: $e');
     }
   }
 
@@ -565,7 +565,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       await _useCases.setHrLogSettings(settings);
       await _useCases.queryHrLogSettings();
     } catch (e) {
-      state = state.copyWith(error: 'HR-Settings Fehler: $e');
+      state = state.copyWith(error: 'HR settings error: $e');
     }
   }
 
@@ -577,7 +577,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       await _useCases.requestSteps(day);
     } catch (e) {
       _stepParser = null;
-      state = state.copyWith(stepsLoading: false, error: 'Schritte Fehler: $e');
+      state = state.copyWith(stepsLoading: false, error: 'Steps error: $e');
     }
   }
 
@@ -644,9 +644,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         await _useCases.stopAllRealTimeMeasurements();
         state = state.copyWith(accelStopCleanupSent: true);
       } catch (e) {
-        state = state.copyWith(
-          error: 'Optische Stop-Sequenz fehlgeschlagen: $e',
-        );
+        state = state.copyWith(error: 'Visual stop sequence failed: $e');
       }
     }
 
@@ -668,7 +666,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
       accelRunning: stillStreaming,
       accelStopping: false,
       accelStopWarning: stillStreaming
-          ? 'Stop gesendet, Ring streamt weiter'
+          ? 'Stop sent, ring keeps streaming'
           : null,
       clearAccelStopWarning: !stillStreaming,
     );
@@ -710,7 +708,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         clearError: true,
       );
     } catch (e) {
-      state = state.copyWith(error: 'Motion-Aufnahme fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Motion recording failed: $e');
     }
   }
 
@@ -753,9 +751,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
         motionRecordingActive: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        error: 'Motion-Aufnahme stoppen fehlgeschlagen: $e',
-      );
+      state = state.copyWith(error: 'Failed to stop motion recording: $e');
     }
   }
 
@@ -763,7 +759,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     try {
       await _useCases.syncTime();
     } catch (e) {
-      state = state.copyWith(error: 'Zeit-Sync Fehler: $e');
+      state = state.copyWith(error: 'Time sync error: $e');
     }
   }
 
@@ -771,7 +767,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     try {
       await _useCases.blinkTwice();
     } catch (e) {
-      state = state.copyWith(error: 'Blink Fehler: $e');
+      state = state.copyWith(error: 'Blink error: $e');
     }
   }
 
@@ -779,7 +775,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
     try {
       await _useCases.reboot();
     } catch (e) {
-      state = state.copyWith(error: 'Reboot Fehler: $e');
+      state = state.copyWith(error: 'Reboot error: $e');
     }
   }
 
@@ -833,7 +829,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
             unawaited(
               _advanceDailyMeasurement(
                 error:
-                    'Ring Fehler ${resp.errorCode} - naechste Messung startet.',
+                    'Ring error ${resp.errorCode} - next measurement starts.',
               ),
             );
           }
@@ -909,7 +905,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
             recording?.session.name ?? _defaultMotionSessionName(),
       );
     } catch (e) {
-      state = state.copyWith(error: 'Motion-Session laden fehlgeschlagen: $e');
+      state = state.copyWith(error: 'Failed to load motion session: $e');
     }
   }
 
@@ -965,7 +961,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
             _onHistoryDataChanged();
           })
           .catchError((Object e, StackTrace _) {
-            state = state.copyWith(error: 'DB speichern fehlgeschlagen: $e');
+            state = state.copyWith(error: 'Failed to save database: $e');
           }),
     );
   }
@@ -973,7 +969,7 @@ class ScanPageNotifier extends StateNotifier<ScanPageState> {
   void _persistMotion(Future<void> Function() write) {
     unawaited(
       write().catchError((Object e, StackTrace _) {
-        state = state.copyWith(error: 'Motion speichern fehlgeschlagen: $e');
+        state = state.copyWith(error: 'Failed to save motion data: $e');
       }),
     );
   }

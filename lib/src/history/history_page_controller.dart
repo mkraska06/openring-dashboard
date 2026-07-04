@@ -66,7 +66,7 @@ class HistoryPageNotifier extends StateNotifier<HistoryPageState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'History konnte nicht geladen werden: $e',
+        error: 'History could not be loaded: $e',
       );
     }
   }

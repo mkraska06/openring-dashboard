@@ -21,8 +21,10 @@ const int packetLength = 16;
 ///   [command] [subData padded to 14 bytes] [checksum]
 Uint8List makePacket(int command, [List<int>? subData]) {
   assert(command >= 0x00 && command <= 0xFF, 'Command must be a single byte');
-  assert(subData == null || subData.length <= 14,
-      'Sub-data must be at most 14 bytes');
+  assert(
+    subData == null || subData.length <= 14,
+    'Sub-data must be at most 14 bytes',
+  );
 
   final packet = Uint8List(packetLength); // all zeros by default
   packet[0] = command;

@@ -17,7 +17,8 @@ void main() {
   group('makeHrLogSettingsSet', () {
     test('encodes enabled=true, interval=5', () {
       final p = makeHrLogSettingsSet(
-          const HrLogSettings(enabled: true, intervalMinutes: 5));
+        const HrLogSettings(enabled: true, intervalMinutes: 5),
+      );
       expect(p[0], Cmd.heartRateLogSettings);
       expect(p[1], 0x02); // set sub-command
       expect(p[2], 1); // enabled = 1
@@ -27,7 +28,8 @@ void main() {
 
     test('encodes enabled=false', () {
       final p = makeHrLogSettingsSet(
-          const HrLogSettings(enabled: false, intervalMinutes: 10));
+        const HrLogSettings(enabled: false, intervalMinutes: 10),
+      );
       expect(p[2], 2); // disabled = 2
       expect(p[3], 10);
     });
@@ -35,8 +37,11 @@ void main() {
 
   group('parseHrLogSettings', () {
     test('parses enabled response', () {
-      final packet =
-          makePacket(Cmd.heartRateLogSettings, [0x01, 1, 5]); // query, on, 5min
+      final packet = makePacket(Cmd.heartRateLogSettings, [
+        0x01,
+        1,
+        5,
+      ]); // query, on, 5min
       final s = parseHrLogSettings(packet);
       expect(s, isNotNull);
       expect(s!.enabled, isTrue);

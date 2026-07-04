@@ -32,10 +32,11 @@ class StepEntry {
 ///   Byte  3:  BCD-encoded day
 ///   Bytes 4-14: zeros
 ///   Byte  15: checksum
-Uint8List makeStepsRequest(DateTime day) => makePacket(
-      Cmd.getSteps,
-      [decToBcd(day.year % 100), decToBcd(day.month), decToBcd(day.day)],
-    );
+Uint8List makeStepsRequest(DateTime day) => makePacket(Cmd.getSteps, [
+  decToBcd(day.year % 100),
+  decToBcd(day.month),
+  decToBcd(day.day),
+]);
 
 /// Stateful parser that assembles multi-packet step data responses.
 ///
@@ -89,12 +90,14 @@ class StepParser {
 
     final time = DateTime.utc(year, month, day, hour, minute);
 
-    _entries.add(StepEntry(
-      time: time,
-      steps: steps,
-      calories: _newCalorieProtocol ? calories : calories,
-      distanceMeters: distance,
-    ));
+    _entries.add(
+      StepEntry(
+        time: time,
+        steps: steps,
+        calories: _newCalorieProtocol ? calories : calories,
+        distanceMeters: distance,
+      ),
+    );
 
     // Check if this is the last packet
     if (currentPacket >= totalPackets - 1) {
