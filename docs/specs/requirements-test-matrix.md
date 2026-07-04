@@ -5,7 +5,7 @@ This document maps the requirements from
 test coverage, or manual acceptance checks.
 
 Last checked: 2026-07-04 against the current Flutter implementation.
-`flutter test` passed with 172 tests.
+`flutter test` passed with 178 tests.
 
 Status values:
 
@@ -143,30 +143,30 @@ Test types:
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
 | DE-01 | Store all implemented data in a local SQLite database | Storage | Partial | Drift stores devices, settings, vitals, battery, activity, and motion sessions; requirement remains partial until future sleep/stress/export data types exist. |
-| DE-02 | User can choose an export date range | Widget / Integration | Partial | Export UI exposes start/end date pickers; add widget test and manual file export acceptance test. |
+| DE-02 | User can choose an export date range | Widget / Integration | Partial | Export UI exposes start/end date pickers and export navigation is widget-tested; add manual file export acceptance test. |
 | DE-03 | Export selected data as CSV | Unit / Integration | Partial | CSV formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; file write path needs manual/desktop validation. |
 | DE-04 | Export selected data as JSON | Unit / Integration | Partial | JSON formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; file write path needs manual/desktop validation. |
-| DE-05 | User can choose which data types to export | Widget / Integration | Partial | Export UI exposes type filters and repository respects selected types; add widget test for filter interaction. |
+| DE-05 | User can choose which data types to export | Widget / Integration | Covered | Export UI filter interaction and repository type filtering are covered by `export_card_test.dart` and `export_repository_test.dart`. |
 
 ## 12. Overlay Requirements
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
 | OV-01 | Overlay window is always on top | Manual | Partial | `OverlayController.activateOverlay` calls `windowManager.setAlwaysOnTop(true)`; native behavior needs manual Windows/Linux validation. |
-| OV-02 | Overlay shows current heart rate in BPM | Widget | Partial | `OverlayWidget` renders heart-rate value from `scanPageProvider`; add overlay widget test with heart-rate state. |
-| OV-03 | Overlay shows current SpO2 percentage | Widget | Partial | `OverlayWidget` renders SpO2 value from `scanPageProvider`; add overlay widget test with SpO2 state. |
-| OV-04 | Overlay shows battery percentage | Widget | Partial | `OverlayWidget` renders battery level and charging icon; add overlay widget test with battery state. |
-| OV-05 | Overlay shows current day's steps | Widget | Partial | `OverlayWidget` renders steps from daily activity or step log totals; add overlay widget test with activity state. |
-| OV-06 | Overlay renders BPM values over 120 in red | Widget | Partial | Threshold logic exists in `OverlayWidget`; add threshold style test. |
-| OV-07 | Overlay renders SpO2 values under 95% in red | Widget | Partial | Threshold logic exists in `OverlayWidget`; add threshold style test. |
-| OV-08 | User can configure thresholds | Storage / Widget | Partial | Threshold settings and persistence methods exist; add visible settings UI and persistence/widget tests. |
+| OV-02 | Overlay shows current heart rate in BPM | Widget | Covered | `overlay_widget_test.dart` covers rendering the heart-rate value. |
+| OV-03 | Overlay shows current SpO2 percentage | Widget | Covered | `overlay_widget_test.dart` covers rendering the SpO2 value. |
+| OV-04 | Overlay shows battery percentage | Widget | Covered | `overlay_widget_test.dart` covers rendering the battery value. |
+| OV-05 | Overlay shows current day's steps | Widget | Covered | `overlay_widget_test.dart` covers rendering daily activity steps. |
+| OV-06 | Overlay renders BPM values over 120 in red | Widget | Covered | `overlay_widget_test.dart` covers high heart-rate threshold styling. |
+| OV-07 | Overlay renders SpO2 values under 95% in red | Widget | Covered | `overlay_widget_test.dart` covers low SpO2 threshold styling. |
+| OV-08 | User can configure thresholds | Storage / Widget | Partial | Threshold settings persist and are tested in `overlay_widget_test.dart`; visible settings UI is still missing. |
 | OV-09 | User can drag overlay freely | Manual / Widget | Partial | Interactive mode calls `windowManager.startDragging`; native drag behavior needs manual validation and controller/widget tests. |
-| OV-10 | Persist overlay position | Storage / Integration | Partial | Position is stored via `SharedPreferences` in `OverlaySettingsNotifier`; add persistence test. |
+| OV-10 | Persist overlay position | Storage / Integration | Covered | `overlay_widget_test.dart` covers `OverlaySettingsNotifier` position persistence through `SharedPreferences`. |
 | OV-11 | User can lock overlay position | Unit / Widget | Partial | Interactive mode toggles between click-through locked mode and draggable mode; add clearer UI/state test for the lock behavior. |
 | OV-12 | User can configure overlay opacity | Unit / Widget | Partial | Opacity state, persistence, and native application exist; add visible settings UI and tests. |
 | OV-13 | Overlay is hidden from taskbar | Manual | Partial | `OverlayController.activateOverlay` calls `windowManager.setSkipTaskbar(true)`; native desktop acceptance test still required. |
 | OV-14 | Overlay shows connection status icon | Widget | Partial | `OverlayWidget` renders green/grey connection dot; add widget test for connected/disconnected states. |
-| OV-15 | User can toggle each overlay parameter | Unit / Widget | Partial | Visibility state and rendering gates exist; add visible settings UI and widget tests. |
+| OV-15 | User can toggle each overlay parameter | Unit / Widget | Partial | Visibility state, persistence, and rendering gates are tested; visible settings UI is still missing. |
 | OV-16 | User can configure overlay font size | Unit / Widget | Open | Add settings and widget style test. |
 | OV-17 | User can configure parameter colors | Unit / Widget | Open | Add settings and widget style test. |
 | OV-18 | User activates overlay through a button | Widget / Integration | Partial | Main title bar shows an overlay activation button while connected; add UI/controller test for activation action. |
@@ -191,16 +191,14 @@ Test types:
 ## Recommended Next Steps
 
 1. Close the documentation/test gap for implemented functionality:
-   - overlay widget tests for values, connection state, visibility flags, and threshold colors
-   - overlay settings persistence tests for position, opacity, visibility, and thresholds
-   - dashboard widget tests for battery, activity totals, HRV, and SpO2 display
-   - protocol command packet tests for set-time, blink, and reboot
+   - widget tests for dashboard battery, activity totals, HRV, and SpO2 display
+   - remaining protocol command packet tests for set-time, blink, and reboot
+   - visible settings UI for overlay thresholds, opacity, and value visibility
 2. Validate reliability features with real hardware:
    - manual startup acceptance test for auto-connect to the last saved ring
    - manual reconnect test after moving the ring out of range or powering it off/on
    - UI/status checks while reconnect is pending or failing
 3. Harden user-facing data export:
-   - widget tests for date pickers, format selection, and data-type filters
    - manual desktop validation of the generated file path
    - optional save-location picker if a file-picker dependency is added later
 4. Keep hardware-dependent checks as manual acceptance tests until a reliable
