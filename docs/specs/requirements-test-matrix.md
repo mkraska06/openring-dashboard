@@ -5,7 +5,7 @@ This document maps the requirements from
 test coverage, or manual acceptance checks.
 
 Last checked: 2026-07-04 against the current Flutter implementation.
-`flutter test` passed with 178 tests.
+`flutter test` passed with 181 tests.
 
 Status values:
 
@@ -144,8 +144,8 @@ Test types:
 | --- | --- | --- | --- | --- |
 | DE-01 | Store all implemented data in a local SQLite database | Storage | Partial | Drift stores devices, settings, vitals, battery, activity, and motion sessions; requirement remains partial until future sleep/stress/export data types exist. |
 | DE-02 | User can choose an export date range | Widget / Integration | Partial | Export UI exposes start/end date pickers and export navigation is widget-tested; add manual file export acceptance test. |
-| DE-03 | Export selected data as CSV | Unit / Integration | Partial | CSV formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; file write path needs manual/desktop validation. |
-| DE-04 | Export selected data as JSON | Unit / Integration | Partial | JSON formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; file write path needs manual/desktop validation. |
+| DE-03 | Export selected data as CSV | Unit / Integration | Partial | CSV formatter, Drift export repository, and selected-folder file writing are covered by `export_formatter_test.dart`, `export_repository_test.dart`, and `export_controller_test.dart`; native desktop folder picker needs manual validation. |
+| DE-04 | Export selected data as JSON | Unit / Integration | Partial | JSON formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; export cancellation and the shared selected-folder write flow are covered by `export_controller_test.dart`, native desktop folder picker needs manual validation. |
 | DE-05 | User can choose which data types to export | Widget / Integration | Covered | Export UI filter interaction and repository type filtering are covered by `export_card_test.dart` and `export_repository_test.dart`. |
 
 ## 12. Overlay Requirements

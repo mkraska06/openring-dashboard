@@ -127,11 +127,28 @@ class ScanStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (color, label) = switch (status) {
-      BleConnectionStatus.disconnected => (Colors.red, 'Disconnected'),
-      BleConnectionStatus.scanning => (Colors.orange, 'Scan...'),
-      BleConnectionStatus.connecting => (Colors.amber, 'Connecting...'),
-      BleConnectionStatus.connected => (Colors.green, 'Connected'),
+    final colorScheme = Theme.of(context).colorScheme;
+    final (dotColor, textColor, label) = switch (status) {
+      BleConnectionStatus.disconnected => (
+        colorScheme.errorContainer,
+        colorScheme.errorContainer,
+        'Disconnected',
+      ),
+      BleConnectionStatus.scanning => (
+        Colors.orangeAccent,
+        colorScheme.onPrimary,
+        'Scan...',
+      ),
+      BleConnectionStatus.connecting => (
+        Colors.amberAccent,
+        colorScheme.onPrimary,
+        'Connecting...',
+      ),
+      BleConnectionStatus.connected => (
+        Colors.lightGreenAccent,
+        colorScheme.onPrimary,
+        'Connected',
+      ),
     };
 
     return Row(
@@ -140,10 +157,20 @@ class ScanStatusIndicator extends StatelessWidget {
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: dotColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: colorScheme.onPrimary.withValues(alpha: 0.7),
+              width: 1,
+            ),
+          ),
         ),
         const SizedBox(width: 6),
-        Text(label),
+        Text(
+          label,
+          style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }

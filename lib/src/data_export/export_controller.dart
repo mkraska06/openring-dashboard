@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import 'export_formatter.dart';
 import 'export_models.dart';
 import 'export_repository.dart';
+
+typedef DirectoryPicker = Future<String?> Function();
+typedef NowProvider = DateTime Function();
 
 class DataExportState {
   const DataExportState({
@@ -45,9 +48,17 @@ class DataExportState {
 }
 
 class DataExportNotifier extends StateNotifier<DataExportState> {
-  DataExportNotifier(this._repository) : super(const DataExportState());
+  DataExportNotifier(
+    this._repository, {
+    DirectoryPicker? chooseDirectory,
+    NowProvider? now,
+  }) : _chooseDirectory = chooseDirectory ?? _defaultChooseDirectory,
+       _now = now ?? DateTime.now,
+       super(const DataExportState());
 
   final ExportRepository _repository;
+  final DirectoryPicker _chooseDirectory;
+  final NowProvider _now;
 
   Future<void> export(ExportRequest request) async {
     if (request.types.isEmpty) {
@@ -67,9 +78,15 @@ class DataExportNotifier extends StateNotifier<DataExportState> {
     );
 
     try {
+      final directoryPath = await _chooseDirectory();
+      if (directoryPath == null) {
+        state = state.copyWith(isExporting: false);
+        return;
+      }
+
       final bundle = await _repository.load(request);
       final contents = formatExportBundle(bundle, request.format);
-      final file = await _createExportFile(request);
+      final file = await _createExportFile(request, directoryPath);
       await file.writeAsString(contents);
       state = state.copyWith(
         isExporting: false,
@@ -81,11 +98,13 @@ class DataExportNotifier extends StateNotifier<DataExportState> {
     }
   }
 
-  Future<File> _createExportFile(ExportRequest request) async {
-    final docs = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(docs.path, 'OpenRing', 'exports'));
+  Future<File> _createExportFile(
+    ExportRequest request,
+    String directoryPath,
+  ) async {
+    final dir = Directory(directoryPath);
     await dir.create(recursive: true);
-    final timestamp = _fileTimestamp(DateTime.now());
+    final timestamp = _fileTimestamp(_now());
     return File(
       p.join(
         dir.path,
@@ -98,6 +117,10 @@ class DataExportNotifier extends StateNotifier<DataExportState> {
     String two(int value) => value.toString().padLeft(2, '0');
     return '${time.year}${two(time.month)}${two(time.day)}_'
         '${two(time.hour)}${two(time.minute)}${two(time.second)}';
+  }
+
+  static Future<String?> _defaultChooseDirectory() {
+    return getDirectoryPath(confirmButtonText: 'Export');
   }
 }
 
