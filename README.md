@@ -11,12 +11,15 @@ ring-based gesture controls. Currently tested with the Colmi R02 and R03.
 
 > OpenRing is not a medical device. It is intended for personal tracking and experimentation only.
 
-<table>
-  <tr>
-    <td><img src="Dashboard_Overlay.png" width="800"/></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="./assets/Dashboard_Overlay.png" alt="OpenRing dashboard and overlay" width="100%">
+</p>
 
+<p align="center">
+  <a href="./assets/Gesture.mp4">
+    Gesture demo video
+  </a>
+</p>
 ## Motivation
 
 Colmi smart rings currently depend on the mobile QRing app, which stores data in the cloud. 
