@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="OpenRing Desktop logo" width="500">
+  <img src="assets/banner.png" alt="OpenRing Desktop logo" width="900">
 </p>
 
 # OpenRing Desktop
