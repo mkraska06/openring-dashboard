@@ -1,10 +1,17 @@
 # Anforderungsdokumentation: OpenRing Desktop
 
 **Projektname:** OpenRing Desktop
-**Version:** 0.2 
-**Datum:** 05. April 2026
-**Autor:** [Name]
-**Status:** In Bearbeitung
+**Version:** 0.3
+**Datum:** 07. Juli 2026
+**Autor:** Marcel
+**Status:** Lebendes Anforderungsdokument
+
+Dieses Dokument beschreibt die fachlichen und technischen Anforderungen an
+OpenRing Desktop. Es ist bewusst als lebende Spezifikation angelegt: Einige
+Anforderungen sind bereits umgesetzt, andere dienen als Zielbild oder bleiben
+wegen fehlender Protokollinformationen vorerst offen. Der aktuelle
+Umsetzungs- und Teststand wird ergänzend in
+[requirements-test-matrix.md](requirements-test-matrix.md) gepflegt.
 
 ---
 
@@ -12,13 +19,25 @@
 
 ### 1.1 Produktvision
 
-OpenRing Desktop ist eine Open-Source-Desktopanwendung, die als vollwertige Alternative zur mobilen QRing-App für Colmi Smart Rings dient. Die Anwendung ermöglicht es Vitaldaten ihres Colmi Rings direkt am Desktop zu empfangen, zu visualisieren und zu analysieren.
+OpenRing Desktop ist eine experimentelle Desktopanwendung für Colmi-kompatible
+Smart Rings. Die Anwendung soll Vital- und Sensordaten direkt am Desktop
+empfangen, visualisieren und lokal speichern, ohne dass dafür ein Cloud-Konto
+oder die mobile QRing-App notwendig ist.
 
-Ein integrierter Overlay-Modus zeigt ausgewählte Vitalparameter dauerhaft im Vordergrund an, sodass der Nutzer seine Werte jederzeit im Blick hat, während er am Computer arbeitet.
+Ein integrierter Overlay-Modus zeigt ausgewählte Werte dauerhaft im Vordergrund
+an, sodass der Nutzer seine Daten während der Arbeit am Computer im Blick
+behalten kann. Zusätzlich untersucht das Projekt, welche Desktop-Steuerungen
+mit den vom Ring gelieferten Accelerometer-Daten möglich sind.
 
 ### 1.2 Problemstellung
 
-Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer, die ihren Colmi Ring am Desktop verwenden möchten haben derzeit keine native Möglichkeit, ihre Vitaldaten live zu überwachen oder historische Daten auszuwerten. Bestehende Drittanbieter-Lösungen sind entweder reine CLI-Tools (z. B. colmi_r02_client, RingCLI) oder mobile Apps.
+Die offizielle QRing-App existiert ausschließlich für iOS und Android und setzt
+auf eine mobile App als zentrale Bedienoberfläche. Für Nutzer, die primär am
+Desktop arbeiten oder ihre Daten lokal untersuchen möchten, gibt es dadurch
+keine komfortable native Anwendung. Bestehende Drittanbieter-Lösungen sind
+entweder reine CLI-Tools (z. B. `colmi_r02_client`, `RingCLI`) oder richten
+sich nicht an eine dauerhafte Desktop-Nutzung mit Overlay, Verlauf und
+lokaler Datenbank.
 
 ### 1.3 Zielgruppe
 
@@ -33,6 +52,8 @@ Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer,
 - Integration mit Apple Health, Google Fit oder Strava
 - Sportmodus-Aufzeichnung (Workout-Tracking)
 - Firmware-Updates des Rings
+- vollständige Schlaf- und Stressanalyse, solange die dafür nötigen
+  Protokollbereiche nicht stabil verstanden sind
 - Medizinische Diagnose oder Beratung
 
 ## 2. Funktionale Anforderungen
@@ -124,13 +145,24 @@ Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer,
 | SL-02 | Das System speichert jeden empfangenen Stresswert mit Zeitstempel in der lokalen Datenbank. | Niedrig |
 | SL-03 | Das System stellt den Stressverlauf eines ausgewählten Tages graphisch dar.        | Niedrig |
 
-### 2.8 Accelerometer
+### 2.8 Accelerometer, Motion Lab & Gesture Hub
 
-| ID    | Anforderung                                                                                      | Priorität |
-|-------|--------------------------------------------------------------------------------------------------|-----------|
-| AC-01 | Das System zeigt die aktuellen Accelerometer-Rohdaten (X-, Y-, Z-Achse) als numerische Werte an. | Niedrig |
-| AC-02 | Das System stellt die Accelerometer-Daten graphisch dar.                                         | Niedrig |
-| AC-03 | (Idee: Ring als maus nutzen)                                                                     | Niedrig |
+Der Accelerometer-Bereich ist nicht nur eine Zusatzanzeige, sondern ein
+experimenteller Teil des Projekts. Er dient dazu, die vom Ring gelieferten
+Bewegungsdaten zu verstehen, aufzuzeichnen und daraus einfache
+Desktop-Steuerungen abzuleiten.
+
+| ID    | Anforderung | Priorität |
+|-------|-------------|-----------|
+| AC-01 | Das System zeigt die aktuellen Accelerometer-Rohdaten (X-, Y-, Z-Achse) als numerische Werte an. | Mittel |
+| AC-02 | Das System rechnet die Rohwerte zusätzlich in angenäherte g-Werte und den Betrag des Beschleunigungsvektors um. | Mittel |
+| AC-03 | Das System kann Accelerometer-Sessions lokal aufzeichnen und mit einem frei wählbaren oder vordefinierten Namen speichern. | Mittel |
+| AC-04 | Das System stellt gespeicherte Accelerometer-Sessions graphisch dar. | Mittel |
+| AC-05 | Das System stellt einfache Auswertungen pro Session bereit, z. B. Sampleanzahl, Dauer, Min-/Max-/Durchschnittswerte und Stabilität. | Niedrig |
+| AC-06 | Das System unterstützt vordefinierte Presets für gehaltene Handpositionen, damit Gestenaufnahmen reproduzierbar benannt werden können. | Mittel |
+| AC-07 | Das System klassifiziert gehaltene Handpositionen anhand gemessener Accelerometer-Zentren. | Mittel |
+| AC-08 | Der Nutzer kann über den Gesture Hub einfache Desktop-Aktionen auslösen, z. B. Scrollen, relative Lautstärkeänderung, Mausbewegung und Linksklick. | Mittel |
+| AC-09 | Das System vermeidet schnelle Tap-, Swipe- oder Doppelklopfgesten als Kerninteraktion, solange die beobachtete Accelerometer-Rate der Stock-Firmware dafür nicht zuverlässig ausreicht. | Hoch |
 
 ### 2.9 Batterie & Gerätestatus
 
@@ -158,6 +190,7 @@ Die offizielle QRing-App existiert ausschließlich für iOS und Android. Nutzer,
 | DE-03 | Der Nutzer kann die ausgewählten Daten als CSV-Datei exportieren.  | Mittel |
 | DE-04 | Der Nutzer kann die ausgewählten Daten als JSON-Datei exportieren. | Niedrig |
 | DE-05 | Der Nutzer kann individuell festlegen, welche Daten exportiert werden.          | Niedrig |
+| DE-06 | Der Export berücksichtigt neben Vital-, Batterie- und Aktivitätsdaten auch aufgezeichnete Motion-Sessions, sofern diese im gewählten Zeitraum liegen. | Niedrig |
 
 ---
 
@@ -192,9 +225,9 @@ Das Overlay wird als **integrierter Modus innerhalb der Hauptanwendung** realisi
 | OV-15 | Der Nutzer kann für jeden Parameter einzeln einstellen, ob er im Overlay sichtbar ist.              | Mittel |
 | OV-16 | Der Nutzer kann die Schriftgröße des Overlays einstellen.                                           | Niedrig |
 | OV-17 | Der Nutzer kann die Anzeigefarbe jedes Parameters im Overlay individuell festlegen.                 | Niedrig |
-| OV-18 | Der Nutzer aktiviert das Overlay über einen Button im System.                                       | Hoch |
+| OV-18 | Der Nutzer aktiviert das Overlay über eine UI-Aktion, einen globalen Hotkey oder das System-Tray.    | Hoch |
 | OV-19 | Das System bleibt nach Aktivierung des Overlays geöffnet und bedienbar.                             | Hoch |
-| OV-20 | Der Nutzer deaktiviert das Overlay über einen Button im System.                                 | Hoch |
+| OV-20 | Der Nutzer deaktiviert das Overlay über eine UI-Aktion, einen globalen Hotkey oder das System-Tray.  | Hoch |
 
 ---
 
@@ -240,12 +273,23 @@ Die Kommunikation mit dem Ring erfolgt über BLE (Bluetooth Low Energy). Wichtig
 - **RX Characteristic (Write):** `6E400002-B5A3-F393-E0A9-E50E24DCCA9E`
 - **TX Characteristic (Notify):** `6E400003-B5A3-F393-E0A9-E50E24DCCA9E`
 - **Paketformat:** 16 Byte pro Paket (1 Byte Command, 14 Byte Payload, 1 Byte Checksum)
-- **Checksum:** Summe der ersten 15 Bytes modulo 255
+- **Checksum:** Summe der ersten 15 Bytes, auf ein Byte begrenzt (`sum & 0xFF`)
 - **Kein Pairing/Binding erforderlich** – der Ring akzeptiert Verbindungen ohne Sicherheitsschlüssel
 
 ### 5.2 Gleichzeitige Messungen
 
-Der Ring verwendet einen einzelnen optischen Sensor (Vcare VC30F) für Herzfrequenz- und SpO₂-Messungen. Beide Messungen nutzen unterschiedliche LED-Wellenlängen (grünes Licht für HR, duales Rot/Infrarot für SpO₂). Das BLE-Protokoll verarbeitet Anfragen sequentiell. Das bedeutet: Eine laufende Echtzeit-HR-Messung muss beendet werden, bevor eine SpO₂-Messung gestartet werden kann. Die Interval-basierte automatische Messung auf dem Ring (HR-Log) kann hingegen unabhängig im Hintergrund laufen, da der Ring diese autonom durchführt und die Daten bei der nächsten Synchronisation überträgt. Für das Overlay ergibt sich daraus, dass BPM und SpO₂ im Wechsel abgefragt werden müssen, nicht gleichzeitig.
+Die beobachteten Colmi-Ringe verwenden für Herzfrequenz, SpO₂, HRV und ähnliche
+Echtzeitwerte einen gemeinsamen optischen Messpfad. Das BLE-Protokoll bietet
+zwar getrennte Start- und Stop-Kommandos, in der Praxis sollten diese
+Messungen aber sequenziell behandelt werden. Das bedeutet: Eine laufende
+Echtzeit-Herzfrequenzmessung muss beendet werden, bevor eine SpO₂- oder
+HRV-Messung zuverlässig gestartet wird.
+
+Die intervallbasierte automatische Messung auf dem Ring (HR-Log) kann davon
+getrennt betrachtet werden, da der Ring diese autonom durchführt und die Daten
+später überträgt. Für Dashboard und Overlay ergibt sich daraus, dass mehrere
+Live-Werte über einen Scheduler im Wechsel abgefragt werden müssen, nicht
+parallel.
 
 ### 5.3 Bestehende Referenzimplementierungen
 

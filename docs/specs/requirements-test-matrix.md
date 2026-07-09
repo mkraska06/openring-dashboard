@@ -117,9 +117,15 @@ Test types:
 
 | ID | Requirement Summary | Test Type | Status | Evidence / Suggested Test |
 | --- | --- | --- | --- | --- |
-| AC-01 | Show current accelerometer X/Y/Z values | Unit / Widget | Covered | Parser tests cover signed axes and `widget_test.dart` covers `AccelerometerCard` rendering diagnostics and values. |
-| AC-02 | Display accelerometer data graphically | Unit / Widget | Partial | Motion Lab records samples and renders `MotionSessionChart`; clarify whether this satisfies the general accelerometer chart requirement or add a dedicated live chart. |
-| AC-03 | Use ring as mouse | Manual / Integration | Partial | Gesture Hub implements mouse movement and click mapping from accelerometer poses; needs concrete acceptance criteria and manual desktop validation. |
+| AC-01 | Show current accelerometer X/Y/Z raw values | Unit / Widget | Covered | Parser tests cover signed axes and `widget_test.dart` covers `AccelerometerCard` rendering diagnostics and values. |
+| AC-02 | Convert raw accelerometer values to g values and magnitude | Unit / Widget | Covered | Motion analysis tests and widget coverage exercise g conversion, magnitude display, and stable-session analysis. |
+| AC-03 | Record named accelerometer sessions locally | Storage / Integration | Partial | Motion session storage exists and controller flows append samples; add broader controller coverage for preset/name handling. |
+| AC-04 | Display saved accelerometer sessions graphically | Unit / Widget | Partial | Motion Lab records samples and renders `MotionSessionChart`; add explicit chart widget assertions for saved sessions. |
+| AC-05 | Provide per-session statistics | Unit | Covered | `gesture_motion_analysis_test.dart` covers statistics, stability, and grouping behavior. |
+| AC-06 | Support presets for held hand-position recordings | Unit / Widget | Partial | Preset parsing and grouping are covered in motion tests; add widget coverage for preset selection if needed. |
+| AC-07 | Classify held hand positions from measured centers | Unit | Covered | `gesture_hub_controller_test.dart` covers classification of measured open-hand and fist positions. |
+| AC-08 | Trigger desktop actions through Gesture Hub | Unit / Integration + Manual | Partial | Gesture Hub unit tests cover scroll, volume, mouse movement, and click mapping; native Windows behavior needs manual validation. |
+| AC-09 | Avoid fast tap/swipe/double-tap as core interaction under low sample rate | Review / Manual | Partial | Design is documented in `gesture-hub.md` and `motion-research-lab.md`; manual validation should confirm held-position interaction remains usable. |
 
 ## 9. Battery And Device Status
 
@@ -147,6 +153,7 @@ Test types:
 | DE-03 | Export selected data as CSV | Unit / Integration | Partial | CSV formatter, Drift export repository, and selected-folder file writing are covered by `export_formatter_test.dart`, `export_repository_test.dart`, and `export_controller_test.dart`; native desktop folder picker needs manual validation. |
 | DE-04 | Export selected data as JSON | Unit / Integration | Partial | JSON formatter and Drift export repository are covered by `export_formatter_test.dart` and `export_repository_test.dart`; export cancellation and the shared selected-folder write flow are covered by `export_controller_test.dart`, native desktop folder picker needs manual validation. |
 | DE-05 | User can choose which data types to export | Widget / Integration | Covered | Export UI filter interaction and repository type filtering are covered by `export_card_test.dart` and `export_repository_test.dart`. |
+| DE-06 | Export motion sessions in the selected date range | Unit / Integration | Partial | Export repository and formatter include motion rows; add manual validation with recorded motion data and selected-folder export. |
 
 ## 12. Overlay Requirements
 

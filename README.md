@@ -5,15 +5,15 @@
 # OpenRing Desktop
 
 OpenRing Desktop is an experimental desktop app for Colmi-compatible smart rings. 
-It connects directly over Bluetooth Low Energy and provides local-first access 
-to live vitals. Currently tested with the Colmi R02 and R03. 
+It connects directly over Bluetooth Low Energy and provides local-first access
+to live measurements, history, an always-on-top overlay and
+ring-based gesture controls. Currently tested with the Colmi R02 and R03. 
 
 > OpenRing is not a medical device. It is intended for personal tracking and experimentation only.
 
 <table>
   <tr>
-    <td><img src="img_1.png" width="400"/></td>
-    <td><img src="img.png" width="400"/></td>
+    <td><img src="Dashboard_Overlay.png" width="800"/></td>
   </tr>
 </table>
 
@@ -23,6 +23,10 @@ Colmi smart rings currently depend on the mobile QRing app, which stores data in
 OpenRing explores an alternative, desktop-native path instead. Vital data is stored locally 
 on your own device. The app communicates with the ring directly over BLE and surfaces live vitals 
 while you work, including through an always-on-top overlay for quick-glance monitoring.
+
+The project also investigates how much of the ring hardware can be used outside
+the official mobile app. This includes reverse-engineered packet handling, accelerometer recordings
+and experimental ring-based gesture controls.
 
 ## What It Can Do
 
