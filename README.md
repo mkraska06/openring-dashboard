@@ -15,11 +15,6 @@ ring-based gesture controls. Currently tested with the Colmi R02 and R03.
   <img src="./assets/Dashboard_Overlay.png" alt="OpenRing dashboard and overlay" width="100%">
 </p>
 
-<p align="center">
-  <a href="./assets/Gesture.mp4">
-    Gesture demo video
-  </a>
-</p>
 ## Motivation
 
 Colmi smart rings currently depend on the mobile QRing app, which stores data in the cloud. 
@@ -52,6 +47,26 @@ OpenRing can request heart-rate log data and step/activity log data from the
 ring. All retrieved data, including devices, vitals, battery snapshots, and
 activity intervals, is stored in a local SQLite database. History charts for
 heart rate, SpO2, HRV, and activity are available directly within the interface.
+
+### Gesture Hub
+
+OpenRing can turn held ring positions into simple desktop controls. The current
+Gesture Hub supports volume control, scrolling, coarse mouse movement, and a
+left click gesture.
+
+The gesture mapping is based on accelerometer recordings from the Motion Lab.
+Because the observed stock-firmware accelerometer stream is roughly 1 Hz,
+OpenRing uses stable held hand positions instead of fast tap or swipe gestures.
+
+<p align="center">
+  <a href="./assets/Gesture.mp4">
+    <img src="./assets/Gesture_Thumbnail.png" alt="Gesture Hub demo video" width="100%">
+  </a>
+</p>
+
+<p align="center">
+  <em>Gesture Hub demo: volume control, mouse movement and scrolling using ring accelerometer data.</em>
+</p>
 
 ### Desktop Integration
 
