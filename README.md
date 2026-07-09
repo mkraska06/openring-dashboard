@@ -51,11 +51,11 @@ heart rate, SpO2, HRV, and activity are available directly within the interface.
 ### Gesture Hub
 
 OpenRing can turn held ring positions into simple desktop controls. The current
-Gesture Hub supports volume control, scrolling, coarse mouse movement, and a
+Gesture Hub supports volume control, scrolling, coarse mouse movement and a
 left click gesture.
 
 The gesture mapping is based on accelerometer recordings from the Motion Lab.
-Because the observed stock-firmware accelerometer stream is roughly 1 Hz,
+Because the observed stock-firmware accelerometer stream is 1 Hz,
 OpenRing uses stable held hand positions instead of fast tap or swipe gestures.
 
 <p align="center">
