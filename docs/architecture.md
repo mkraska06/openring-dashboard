@@ -1,72 +1,60 @@
-# Architecture
+# Architecture Overview
 
-This document describes the current architecture of OpenRing Desktop and the
-direction the project is moving toward. It is intended as a high-level map for
-contributors and future maintainers, not as a full implementation reference for
-every class.
+This document explains the technical structure of OpenRing Desktop v1.0. It
+provides a high-level map of the main modules, their
+responsibilities, and the data flow between the ring, protocol layer, storage,
+UI, overlay and Gesture Hub.
 
-OpenRing is still an early prototype, so some parts of the architecture are
-already in place while others are transitional. The main goal is to keep the
-BLE, protocol, storage, UI, and overlay layers understandable and independently
-testable as the app grows.
+The goal of the architecture is to keep hardware communication, protocol
+parsing, local storage and UI behavior separated. This makes the implemented
+features easier to explain, test and extend without mixing them.
 
-## Design Goals
+## Architectural Goals
 
-OpenRing is built around a few core design goals:
-
-- keep health data local by default
-- avoid cloud or account dependencies
-- keep protocol parsing deterministic and well tested
-- route UI intent through controller, use-case, or service layers
-- avoid sending BLE commands directly from widgets
-- keep the overlay integrated with the main app instead of opening a second BLE
-  pipeline
-- make hardware and protocol assumptions explicit
+- separate BLE transport, protocol parsing, local storage and UI behavior
+- keep protocol parsing deterministic and covered by automated tests
+- route UI actions through dedicated controller, use-case and service layers
+- keep the overlay integrated with the main app because the ring supports only
+  one active BLE connection
 
 ## High-Level Flow
 
+![High-level flow diagram](high-level-flow.svg)
+
 At a high level, live data flows through the app like this:
 
-```text
-Colmi ring
-  -> BLE notification
-  -> BleService packet stream
-  -> protocol parser
-  -> page controller / measurement scheduler
-  -> storage repository
-  -> dashboard, history view, or overlay
-```
+| Flow Step | Main Code Location |
+| --- | --- |
+| Colmi ring sends BLE notification | ring hardware |
+| BLE notification is received and exposed as packet stream | [lib/src/ble/ble_service.dart](../lib/src/ble/ble_service.dart) |
+| Packet bytes are parsed into typed responses | [lib/src/protocol/](../lib/src/protocol/) |
+| Live state and measurement timing are coordinated | [lib/src/ui/scan_page_controller.dart](../lib/src/ui/scan_page_controller.dart), [lib/src/measurements/daily_measurement_cycle.dart](../lib/src/measurements/daily_measurement_cycle.dart) |
+| Values are stored or loaded for history | [lib/src/storage/storage_repository.dart](../lib/src/storage/storage_repository.dart), [lib/src/history/history_page_controller.dart](../lib/src/history/history_page_controller.dart) |
+| Values are rendered in dashboard, history, or overlay | [lib/src/ui/](../lib/src/ui/), [lib/src/history/](../lib/src/history/), [lib/src/overlay/](../lib/src/overlay/) |
+
+BLE notifications are received by `BleService`, parsed by the protocol layer,
+coordinated by the page controller and measurement-related components, then
+either stored locally or rendered in the dashboard, history view, or overlay.
 
 Commands flow in the opposite direction:
 
-```text
-User action
-  -> widget callback
-  -> page controller
-  -> UI-facing use case
-  -> BleService
-  -> protocol command packet
-  -> Colmi ring
-```
+| Flow Step | Main Code Location |
+| --- | --- |
+| User action starts in a widget callback | [lib/src/ui/scan_page.dart](../lib/src/ui/scan_page.dart), [lib/src/ui/scan_page_widgets.dart](../lib/src/ui/scan_page_widgets.dart) |
+| Page controller handles the action | [lib/src/ui/scan_page_controller.dart](../lib/src/ui/scan_page_controller.dart) |
+| UI-facing use case builds or sends the command | [lib/src/ui/scan_page_use_cases.dart](../lib/src/ui/scan_page_use_cases.dart) |
+| Protocol command packet is constructed | [lib/src/protocol/](../lib/src/protocol/) |
+| BLE service sends the packet to the ring | [lib/src/ble/ble_service.dart](../lib/src/ble/ble_service.dart) |
+
+Widget callbacks are routed through the controller and use-case layer before a
+protocol packet is sent through `BleService`.
 
 This separation keeps widgets focused on presentation and keeps protocol logic
 independent from Flutter UI code.
 
-A renderable PlantUML diagram for module ownership is available in
-[architecture-module-boundaries.puml](architecture-module-boundaries.puml).
-
-## Module Map
-
-| Path | Responsibility |
-| --- | --- |
-| [lib/src/ble/](../lib/src/ble/) | Low-level BLE scanning, connection handling, notification stream, and packet sending |
-| [lib/src/protocol/](../lib/src/protocol/) | Pure packet builders, packet validators, and protocol parsers |
-| [lib/src/ui/](../lib/src/ui/) | Main dashboard composition, page state, and UI-facing command orchestration |
-| [lib/src/storage/](../lib/src/storage/) | Drift/SQLite database schema, persistence, and history loading |
-| [lib/src/history/](../lib/src/history/) | History page state, chart models, chart widgets, and history UI behavior |
-| [lib/src/overlay/](../lib/src/overlay/) | Overlay state, native window control, tray menu, hotkeys, and overlay widget |
-| [lib/src/measurements/](../lib/src/measurements/) | Measurement sequencing and scheduler logic |
-| [lib/src/gesture_hub/](../lib/src/gesture_hub/) | Gesture-based system controls using held accelerometer positions |
+A more detailed breakdown of incoming data, persistence, history loading,
+overlay state, and outgoing commands is documented in
+[data-flow.md](data-flow.md).
 
 ## BLE Layer
 
@@ -82,17 +70,12 @@ The BLE layer lives in [lib/src/ble/](../lib/src/ble/).
 - sending validated command packets
 - exposing packet and connection-status streams
 
-The BLE layer should not contain UI behavior, charting logic, storage decisions,
-or interpretation-heavy business rules. Its job is transport: move packets
-between the desktop app and the ring.
-
 ## Protocol Layer
 
 The protocol layer lives in [lib/src/protocol/](../lib/src/protocol/).
 
 This layer contains deterministic packet builders and parsers for known Colmi
-commands and responses. It should remain independent from Flutter widgets,
-Riverpod providers, database code, and platform-specific window behavior.
+commands and responses. 
 
 Examples of protocol responsibilities:
 
@@ -106,54 +89,36 @@ Examples of protocol responsibilities:
 - accelerometer parsing
 - utility commands such as time sync, blink, and reboot
 
-Protocol behavior should be covered by focused tests whenever a packet format is
-added or changed.
-
 ## UI Layer
 
 The main dashboard UI lives in [lib/src/ui/](../lib/src/ui/).
 
 The current UI split is:
 
-- [scan_page.dart](../lib/src/ui/scan_page.dart) for page composition and navigation between dashboard and
-  history
+- [scan_page.dart](../lib/src/ui/scan_page.dart) for page composition and navigation between dashboard,
+  Gesture Hub, history, export, and advanced controls
 - [scan_page_widgets.dart](../lib/src/ui/scan_page_widgets.dart) for reusable dashboard widgets and cards
 - [scan_page_controller.dart](../lib/src/ui/scan_page_controller.dart) for page state and orchestration
 - [scan_page_use_cases.dart](../lib/src/ui/scan_page_use_cases.dart) for UI-facing BLE command operations
-
-Widgets should remain presentation-focused. When a user presses a button, the
-widget should call the controller or a use-case abstraction instead of sending a
-BLE packet directly.
-
-This keeps the app easier to test and prevents protocol or transport logic from
-leaking into UI components.
 
 ## Storage Layer
 
 The storage layer lives in [lib/src/storage/](../lib/src/storage/).
 
-OpenRing currently uses Drift with SQLite for local persistence. The database
-stores:
+OpenRing currently uses Drift with SQLite. 
+
+The database stores:
 
 - known devices
 - app settings
 - vital samples
 - battery snapshots
 - activity intervals
+- motion recording sessions
+- motion samples
 
 The storage repository maps parsed ring data into local models that can be used
-by history views and future export features.
-
-The current storage layer is intentionally local-first. There is no cloud
-backend and no account system.
-
-Future storage work should include:
-
-- schema migrations
-- CSV and JSON export paths
-- clearer database location documentation
-- stronger deduplication rules where needed
-- possibly a dedicated storage document once the schema becomes more stable
+by history views, Motion Lab, Gesture Hub analysis, and data export.
 
 ## History Layer
 
@@ -175,6 +140,14 @@ current visualization heuristic is documented separately in:
 
 - [live-heart-rate-history.md](live-heart-rate-history.md)
 
+## Data Export
+
+The data export feature lives in [lib/src/data_export/](../lib/src/data_export/).
+
+It reads selected local database tables through `ExportRepository`, converts the
+selected date range into export models, and formats the result as a user-facing
+file. It reads from local storage.
+
 ## Overlay Architecture
 
 The overlay lives in [lib/src/overlay/](../lib/src/overlay/).
@@ -194,32 +167,6 @@ using `window_manager`. The overlay controller manages:
 - tray menu integration
 - global hotkeys
 
-The visual overlay should use a weak dark background while keeping text and
-icons fully visible. Low whole-window opacity should be used carefully because
-it fades the values as well as the background.
-
-## Measurement Scheduling
-
-Real-time measurements are a shared sensor resource. The ring cannot reliably
-measure heart rate, SpO2, HRV, and similar values all at the same time.
-
-The intended architecture is to route live measurement requests through a
-measurement coordinator or scheduler. Instead of UI components directly
-starting and stopping each sensor command, they should express desired
-measurements. The scheduler can then serialize access to the ring.
-
-The scheduler direction is:
-
-- maintain the set of desired measurements
-- run only one active measurement at a time
-- apply cooldowns after successful measurements
-- retry after errors or hardware pauses
-- publish latest values with freshness timestamps
-- support a lightweight rotating profile for overlay mode
-
-Some scheduler logic already exists in [lib/src/measurements/](../lib/src/measurements/), but integration
-with the main live UI and overlay is still a work in progress.
-
 ## Gesture Hub
 
 The Gesture Hub lives in [lib/src/gesture_hub/](../lib/src/gesture_hub/).
@@ -233,7 +180,7 @@ It turns held accelerometer positions into coarse desktop controls:
 The Gesture Hub deliberately avoids fast tap or swipe detection because the
 observed stock-firmware accelerometer stream is roughly `1 Hz`. Instead, it
 uses calibrated held positions from Motion Lab recordings. The detailed
-gesture data collection, control mapping, and native Windows input services
+gesture data collection, control mapping and Windows input services
 are documented in:
 
 - [gesture-hub.md](gesture-hub.md)
@@ -241,46 +188,28 @@ are documented in:
 
 ## Testing Strategy
 
-OpenRing should favor focused tests around deterministic logic and high-risk
-behavior.
-
-Current and expected test areas include:
+Current automated test areas include:
 
 - packet validation and parsing
 - command packet building
 - storage repository behavior
+- data export repository, formatter, controller, and widget behavior
 - history chart model calculations
 - live heart-rate timestamp reconstruction
-- measurement scheduler sequencing
-
-BLE behavior and native window behavior are harder to unit test directly, so
-they should be kept behind narrow boundaries where possible.
+- daily measurement sequencing
+- UI controller behavior for scanning, connection, measurements, and
+  accelerometer stop handling
+- Motion Lab analysis and Gesture Hub control behavior
+- overlay widget behavior
 
 The detailed test layout, commands, and documentation rules are described in
 [testing.md](testing.md).
-
-## Known Architectural Gaps
-
-The current architecture still has several known gaps:
-
-- reconnect behavior is not robust yet
-- measurement scheduling is not fully integrated into all live UI paths
-- export flows do not exist yet
-- database migrations are not defined beyond the initial schema
-- hardware compatibility documentation is still missing
-- Linux-specific BLE setup and troubleshooting need validation
-- release packaging is not defined
-- sleep data support is not implemented
-
-These gaps should be addressed incrementally without collapsing module
-boundaries or moving protocol and BLE logic into widgets.
 
 ## Related Documents
 
 - [README.md](../README.md)
 - [protocol.md](protocol.md)
 - [live-heart-rate-history.md](live-heart-rate-history.md)
-- [architecture-module-boundaries.puml](architecture-module-boundaries.puml)
 - [database-schema.md](database-schema.md)
 - [data-flow.md](data-flow.md)
 - [measurement-scheduling.md](measurement-scheduling.md)
@@ -289,3 +218,11 @@ boundaries or moving protocol and BLE logic into widgets.
 - [testing.md](testing.md)
 - [specs/initial-requirements.md](specs/initial-requirements.md)
 - [specs/use-case-diagram.puml](specs/use-case-diagram.puml)
+- [hardware-notes.md](hardware-notes.md)
+- [ai-assistance.md](ai-assistance.md)
+
+## AI Assistance Disclosure
+
+This document was checked and corrected with AI assistance to ensure that the
+architecture description matches the existing project source code. The content
+was reviewed by the author.

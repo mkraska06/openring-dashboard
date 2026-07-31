@@ -1,7 +1,9 @@
-@startuml OpenRing-Desktop-Anwendungsfalldiagramm
+@startuml OpenRing-Desktop-Use-Case-Diagram
 ' ===========================================================
-' Anwendungsfalldiagramm: OpenRing Desktop
-' Kompakte, zielorientierte Sicht auf die Anwendungsfaelle.
+' Use case diagram: OpenRing Desktop
+' Compact, goal-oriented view of the implemented v1.0 application scope.
+' AI assistance: German diagram labels were translated to English and adjusted
+' to the documented v1.0 submission scope.
 ' ===========================================================
 
 skinparam backgroundColor #FFFFFF
@@ -17,48 +19,47 @@ skinparam actor {
 skinparam packageStyle rectangle
 left to right direction
 
-actor "Nutzer" as User
+actor "User" as User
 actor "Colmi Ring" as Ring
 
 rectangle "OpenRing Desktop" {
 
-    usecase "Ring verbinden"                as UC_Connect
-    usecase "Verbindung trennen"            as UC_Disconnect
+    usecase "Connect ring"                as UC_Connect
+    usecase "Disconnect"                  as UC_Disconnect
 
-    usecase "Live-Vitaldaten einsehen"      as UC_Live
-    usecase "Vitaldatenverlauf auswerten"   as UC_History
-    usecase "Schlaf auswerten"              as UC_Sleep
-    usecase "Aktivitaet &\nSchrittziel verfolgen" as UC_Activity
+    usecase "View live vital data"         as UC_Live
+    usecase "Analyze vital history"        as UC_History
+    usecase "Track activity data"          as UC_Activity
+    usecase "Record and analyze\nmotion data" as UC_Motion
+    usecase "Use Gesture Hub\ncontrols"    as UC_Gesture
 
-    usecase "Daten exportieren"             as UC_Export
+    usecase "Export data"                 as UC_Export
 
-    usecase "Overlay nutzen"                as UC_Overlay
+    usecase "Use overlay"                 as UC_Overlay
 
-
-    usecase "Ring-Funktionen nutzen\n(Finden, Neustart, Reset)" as UC_Device
-
-
+    usecase "Use ring functions\n(find, restart, reset)" as UC_Device
 }
 
-' === Nutzer ===
+' === User ===
 User --> UC_Connect
 User --> UC_Disconnect
 User --> UC_Live
 User --> UC_History
-User --> UC_Sleep
 User --> UC_Activity
+User --> UC_Motion
+User --> UC_Gesture
 User --> UC_Export
 User --> UC_Overlay
 User --> UC_Device
 
-
-' === Colmi Ring (nur dort, wo BLE-Kommunikation zwingend ist) ===
+' === Colmi Ring (only where BLE communication is required) ===
 UC_Connect  --> Ring
 UC_Disconnect --> Ring
 UC_Live     --> Ring
 UC_History  --> Ring
-UC_Sleep    --> Ring
 UC_Activity --> Ring
+UC_Motion   --> Ring
+UC_Gesture  --> Ring
 UC_Device   --> Ring
 
 @enduml
