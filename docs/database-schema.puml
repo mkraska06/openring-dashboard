@@ -67,9 +67,30 @@ entity "activity_intervals" as activity_intervals {
     unique(device_id, started_at)
 }
 
+entity "motion_sessions" as motion_sessions {
+    * id : integer <<PK>>
+    --
+    device_id : text <<FK>>
+    name : text
+    started_at : datetime
+    ended_at : datetime?
+}
+
+entity "motion_samples" as motion_samples {
+    * id : integer <<PK>>
+    --
+    session_id : integer <<FK>>
+    received_at : datetime
+    acc_x : integer
+    acc_y : integer
+    acc_z : integer
+}
+
 devices ||--o{ vital_samples
 devices ||--o{ battery_snapshots
 devices ||--o{ activity_intervals
+devices ||--o{ motion_sessions
+motion_sessions ||--o{ motion_samples
 
 note right of app_settings
 Stores small app-level values,
@@ -79,6 +100,11 @@ end note
 note bottom of vital_samples
 kind examples: heart_rate, spo2, hrv
 source examples: live, ring_log
+end note
+
+note bottom of motion_samples
+Stores raw accelerometer samples
+for Motion Lab recordings.
 end note
 
 @enduml

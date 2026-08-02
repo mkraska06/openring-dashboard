@@ -9,26 +9,9 @@ The schema is built around one central device table. Time-based data references
 the ring by `device_id`, which allows OpenRing to store values from more than
 one ring without mixing their histories.
 
-The renderable PlantUML source for this schema lives in
-[database-schema.puml](database-schema.puml). It can be exported to PNG, SVG, or PDF for
-presentations and written documentation.
 
-## Overview
 
-```text
-devices
-  device_id (PK)
-      |
-      |-- vital_samples.device_id (FK)
-      |-- battery_snapshots.device_id (FK)
-      |-- activity_intervals.device_id (FK)
-
-app_settings
-  key (PK)
-```
-
-`app_settings` is independent from the measurement tables. It stores small
-application-level values, for example the id of the last connected ring.
+![Database schema](../assets/database-schema.png)
 
 ## Tables
 
@@ -39,6 +22,8 @@ application-level values, for example the id of the last connected ring.
 | `vital_samples` | Heart rate, SpO2, and HRV samples with timestamp, unit, and source |
 | `battery_snapshots` | Battery level and charging state at a point in time |
 | `activity_intervals` | Step, calorie, and distance values for activity intervals |
+| `motion_sessions` | Motion Lab recording sessions for accelerometer data collection |
+| `motion_samples` | Accelerometer samples that belong to a motion recording session |
 
 ## `devices`
 
@@ -125,12 +110,34 @@ Unique key:
 device_id + started_at
 ```
 
-## Why This Shape
+## `motion_sessions`
 
-The schema separates different kinds of time-series data instead of putting
-everything into one generic table. Vital samples, battery snapshots, and
-activity intervals have different fields and different update behavior, so
-separate tables keep the data easier to query and explain.
+Stores Motion Lab recording sessions.
 
-The shared `device_id` relationship keeps the schema simple while still making
-multi-ring history possible.
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | integer | Auto-increment primary key |
+| `device_id` | text | Foreign key to `devices.device_id` |
+| `name` | text | User-visible recording name |
+| `started_at` | datetime | Start time of the recording |
+| `ended_at` | datetime, nullable | End time of the recording |
+
+## `motion_samples`
+
+Stores accelerometer samples for a Motion Lab recording session.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | integer | Auto-increment primary key |
+| `session_id` | integer | Foreign key to `motion_sessions.id` |
+| `received_at` | datetime | Time when OpenRing received the sample |
+| `acc_x` | integer | Accelerometer X-axis value |
+| `acc_y` | integer | Accelerometer Y-axis value |
+| `acc_z` | integer | Accelerometer Z-axis value |
+
+
+## AI Assistance Disclosure
+
+This document was checked and corrected with AI assistance to ensure that the
+database schema description matches the existing project source code. The
+content was reviewed by the author.

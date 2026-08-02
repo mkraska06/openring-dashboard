@@ -18,84 +18,63 @@ UniversalBle notification
   -> BleService.packetStream
 ```
 
-At this point the data is still a protocol packet. It has not yet become a
-heart-rate value, battery snapshot, or activity record.
+At this point the data is still a protocol packet.
 
 ## Packet Parsing
 
-[ScanPageNotifier](../lib/src/ui/scan_page_controller.dart) subscribes to the
-packet stream after a successful connection. For each packet, it checks the
+After a successful connection,
+[ScanPageNotifier](../lib/src/ui/scan_page_controller.dart) starts listening to
+the packet stream exposed by `BleService`. For each packet, it checks the
 command byte and delegates to the matching parser in
 [lib/src/protocol/](../lib/src/protocol/).
 
 Examples:
 
-| Packet type | Parser/output |
+| Incoming packet | Parser |
 | --- | --- |
-| Battery response | [parseBatteryResponse](../lib/src/protocol/battery.dart) -> `BatteryResponse` |
-| Real-time reading | [parseRealTimeResponse](../lib/src/protocol/real_time.dart) -> `RealTimeReading` |
-| Heart-rate log | [HrLogParser](../lib/src/protocol/hr_log.dart) -> `HrLogResult` |
-| Step/activity log | [StepParser](../lib/src/protocol/steps.dart) -> `StepEntry` list |
-| Daily activity notification | [parseDailyActivityNotification](../lib/src/protocol/activity.dart) -> `DailyActivitySnapshot` |
-| Accelerometer packet | [parseAccelerometerResponse](../lib/src/protocol/accelerometer.dart) -> `AccelerometerReading` |
-
-The protocol layer stays deterministic: it receives bytes and returns parsed
-values or `null`. It does not know about widgets, windows, or the database.
+| Battery data | [parseBatteryResponse](../lib/src/protocol/battery.dart) |
+| Live vital reading | [parseRealTimeResponse](../lib/src/protocol/real_time.dart) |
+| Heart-rate history | [HrLogParser](../lib/src/protocol/hr_log.dart) |
+| Step/activity history | [StepParser](../lib/src/protocol/steps.dart) |
+| Daily activity notification | [parseDailyActivityNotification](../lib/src/protocol/activity.dart) |
+| Accelerometer data | [parseAccelerometerResponse](../lib/src/protocol/accelerometer.dart) |
 
 ## State Updates
 
-After parsing, [ScanPageNotifier](../lib/src/ui/scan_page_controller.dart)
-updates `ScanPageState`. That state is the current live model used by the
-dashboard and overlay.
+After parsing, `ScanPageNotifier` updates `ScanPageState`. That state is the
+current live model used by the dashboard and overlay.
 
-Examples:
+This live state contains the values that can change while the ring is connected,
+such as current vital readings, battery status, step data, accelerometer data and
+Motion Lab recording state. The dashboard and overlay read from this state
+directly, while the history view loads stored data separately from SQLite.
 
-- `battery` is updated after a battery response.
-- `realTimeReadings` is updated after a heart-rate, SpO2, or HRV response.
-- `steps` is updated after step log sync.
-- `dailyActivity` is updated after a daily activity notification.
-- `lastAccel` is updated after an accelerometer packet.
-- `motionRecording` and `motionRecordings` are updated while Motion Lab
-  recordings are started, loaded, or extended with accelerometer samples.
+## Local Storage
 
-This means the live UI can react immediately, before or independently of any
-history view reload.
-
-## Persistence
-
-When a parsed value should become history, the controller writes it through
-[OpenRingStorage](../lib/src/storage/storage_repository.dart). Storage writes
-are intentionally separated from packet parsing.
+When a parsed value should become history, the controller writes it through the
+local storage repository.
 
 ```text
 parsed value
   -> ScanPageNotifier
-  -> OpenRingStorage
+  -> local storage repository
   -> Drift
   -> SQLite
 ```
 
-Current persistence behavior:
+The storage methods are implemented in
+[storage_repository.dart](../lib/src/storage/storage_repository.dart).
 
-| Data | Storage path |
-| --- | --- |
-| Discovered or connected ring | [upsertDevice / setLastConnectedDevice](../lib/src/storage/storage_repository.dart) |
-| Battery response | [insertBatterySnapshot](../lib/src/storage/storage_repository.dart) |
-| Live HR, SpO2, HRV | [persistRealTimeReading](../lib/src/storage/storage_repository.dart) -> `insertVitalSample` |
-| Heart-rate log entries | [insertHrLogEntries](../lib/src/storage/storage_repository.dart) -> `vital_samples` |
-| Step log entries | [insertStepEntries](../lib/src/storage/storage_repository.dart) -> `activity_intervals` |
-| Motion recording start | [startMotionSession](../lib/src/storage/storage_repository.dart) -> `motion_sessions` |
-| Motion sample | [appendMotionSample](../lib/src/storage/storage_repository.dart) -> `motion_samples` |
-| Motion recording stop | [stopMotionSession](../lib/src/storage/storage_repository.dart) -> `motion_sessions.ended_at` |
-
-Storage writes are fire-and-forget from the controller. If a write fails, the
-error is surfaced in the page state, but the BLE packet stream can continue
-running.
+The full SQLite schema is documented in
+[database-schema.md](database-schema.md).
 
 ## History Flow
 
-The history view does not read packets directly. It loads already persisted data
+The history view does not read packets directly. It loads already stored data
 from SQLite through the storage repository.
+
+[HistoryPageNotifier](../lib/src/history/history_page_controller.dart) handles
+the selected day and triggers history loading.
 
 ```text
 History page
@@ -114,28 +93,6 @@ Live heart-rate samples need special display handling because the ring reports
 values in measurement blocks. That timestamp reconstruction is documented in
 [live-heart-rate-history.md](live-heart-rate-history.md).
 
-## Data Export Flow
-
-The export feature does not read live BLE packets. It loads already stored rows
-from SQLite, maps them into export models, and formats the selected result for
-the user.
-
-```text
-Export request
-  -> DataExportNotifier
-  -> ExportRepository
-  -> SQLite rows
-  -> ExportBundle
-  -> formatExportBundle(...)
-  -> CSV / JSON file
-```
-
-The [ExportRepository](../lib/src/data_export/export_repository.dart) can load
-vital samples, battery snapshots, activity intervals, and motion samples for the
-selected date range. The formatter in
-[lib/src/data_export/export_formatter.dart](../lib/src/data_export/export_formatter.dart)
-then converts the loaded bundle to CSV or JSON. This keeps export behavior
-independent from the active ring connection.
 
 ## Overlay Flow
 
@@ -165,7 +122,7 @@ The [OverlayWidget](../lib/src/overlay/overlay_widget.dart) currently reads:
 User actions start as widget callbacks. Widgets call the controller, and the
 controller calls [ScanPageUseCases](../lib/src/ui/scan_page_use_cases.dart).
 The use-case layer builds or sends the appropriate command through
-[BleService](../lib/src/ble/ble_service.dart).
+`BleService`.
 
 ```text
 Button press
@@ -187,7 +144,6 @@ Examples:
 | Sync ring time | controller -> [syncTime](../lib/src/ui/scan_page_controller.dart) -> set-time packet |
 | Blink ring | controller -> [blinkTwice](../lib/src/ui/scan_page_controller.dart) -> utility packet |
 | Reboot ring | controller -> [reboot](../lib/src/ui/scan_page_controller.dart) -> utility packet |
-
 
 ## AI Assistance Disclosure
 
