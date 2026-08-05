@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="520" viewBox="0 0 1120 520" role="img" aria-labelledby="title desc">
+  <title id="title">OpenRing Desktop high-level data and command flow</title>
+  <desc id="desc">Architecture flow diagram showing incoming ring data and outgoing user commands through the main OpenRing components.</desc>
+  <style>
+    .bg { fill: #ffffff; }
+    .title { font: 700 24px Arial, sans-serif; fill: #172033; }
+    .section { font: 700 17px Arial, sans-serif; fill: #172033; }
+    .node { fill: #f5f9ff; stroke: #2b4f81; stroke-width: 1.4; rx: 10; }
+    .node-alt { fill: #f7fbf8; stroke: #2f6f4f; stroke-width: 1.4; rx: 10; }
+    .node-ring { fill: #fff3e0; stroke: #8a5a00; stroke-width: 1.4; rx: 10; }
+    .label { font: 700 14px Arial, sans-serif; fill: #172033; }
+    .path { font: 400 11px Consolas, monospace; fill: #34506f; }
+    .arrow { stroke: #2b4f81; stroke-width: 1.7; fill: none; marker-end: url(#arrowhead); }
+    .arrow-alt { stroke: #2f6f4f; stroke-width: 1.7; fill: none; marker-end: url(#arrowhead-alt); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2b4f81" />
+    </marker>
+    <marker id="arrowhead-alt" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2f6f4f" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1120" height="520" />
+  <text class="title" x="40" y="46">OpenRing Desktop High-Level Flow</text>
+
+  <text class="section" x="40" y="100">Incoming Ring Data</text>
+  <text class="section" x="40" y="310">Outgoing User Commands</text>
+
+  <!-- Incoming flow -->
+  <rect class="node-ring" x="40" y="130" width="145" height="76" />
+  <text class="label" x="112" y="160" text-anchor="middle">Colmi Ring</text>
+  <text class="path" x="112" y="184" text-anchor="middle">hardware</text>
+
+  <rect class="node" x="220" y="130" width="145" height="76" />
+  <text class="label" x="292" y="160" text-anchor="middle">BleService</text>
+  <text class="path" x="292" y="184" text-anchor="middle">lib/src/ble</text>
+
+  <rect class="node" x="400" y="130" width="145" height="76" />
+  <text class="label" x="472" y="160" text-anchor="middle">Protocol</text>
+  <text class="path" x="472" y="184" text-anchor="middle">lib/src/protocol</text>
+
+  <rect class="node" x="580" y="130" width="165" height="76" />
+  <text class="label" x="662" y="160" text-anchor="middle">Controller</text>
+  <text class="path" x="662" y="184" text-anchor="middle">ui + measurements</text>
+
+  <rect class="node" x="780" y="130" width="145" height="76" />
+  <text class="label" x="852" y="160" text-anchor="middle">Storage</text>
+  <text class="path" x="852" y="184" text-anchor="middle">storage + history</text>
+
+  <rect class="node" x="960" y="130" width="145" height="76" />
+  <text class="label" x="1032" y="160" text-anchor="middle">UI / Overlay</text>
+  <text class="path" x="1032" y="184" text-anchor="middle">ui + overlay</text>
+
+  <path class="arrow" d="M185 168 H220" />
+  <path class="arrow" d="M365 168 H400" />
+  <path class="arrow" d="M545 168 H580" />
+  <path class="arrow" d="M745 168 H780" />
+  <path class="arrow" d="M925 168 H960" />
+
+  <!-- Outgoing flow -->
+  <rect class="node-alt" x="40" y="340" width="145" height="76" />
+  <text class="label" x="112" y="370" text-anchor="middle">Widget</text>
+  <text class="path" x="112" y="394" text-anchor="middle">ui widgets</text>
+
+  <rect class="node-alt" x="220" y="340" width="145" height="76" />
+  <text class="label" x="292" y="370" text-anchor="middle">Controller</text>
+  <text class="path" x="292" y="394" text-anchor="middle">scan_page</text>
+
+  <rect class="node-alt" x="400" y="340" width="145" height="76" />
+  <text class="label" x="472" y="370" text-anchor="middle">Use Cases</text>
+  <text class="path" x="472" y="394" text-anchor="middle">use cases</text>
+
+  <rect class="node-alt" x="580" y="340" width="145" height="76" />
+  <text class="label" x="652" y="370" text-anchor="middle">Protocol</text>
+  <text class="path" x="652" y="394" text-anchor="middle">command packet</text>
+
+  <rect class="node-alt" x="760" y="340" width="145" height="76" />
+  <text class="label" x="832" y="370" text-anchor="middle">BleService</text>
+  <text class="path" x="832" y="394" text-anchor="middle">sendPacket</text>
+
+  <rect class="node-ring" x="940" y="340" width="145" height="76" />
+  <text class="label" x="1012" y="370" text-anchor="middle">Colmi Ring</text>
+  <text class="path" x="1012" y="394" text-anchor="middle">hardware</text>
+
+  <path class="arrow-alt" d="M185 378 H220" />
+  <path class="arrow-alt" d="M365 378 H400" />
+  <path class="arrow-alt" d="M545 378 H580" />
+  <path class="arrow-alt" d="M725 378 H760" />
+  <path class="arrow-alt" d="M905 378 H940" />
+</svg>
