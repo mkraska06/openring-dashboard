@@ -3,34 +3,30 @@
 This document describes how OpenRing currently handles timestamps for live
 heart-rate values from COLMI rings when rendering the History graph.
 
-The behavior described here applies to live heart-rate data only. Other live
-vital types may use a similar approach later, but this document does not assume
-that the same interpretation is valid for them.
-
 ## Background
 
 The COLMI ring does not provide live heart-rate values as a continuous stream of
-independent point measurements. Instead, values arrive in blocks. The number of
-values in a block is not fixed; in practice, several heart-rate values are
-reported in quick succession.
+independent point measurements. Instead, values arrive in blocks. The number of values 
+in each block varies.
 
-A heart-rate value derived from PPG data is not a true instantaneous value.
-Only from the temporal course of the measurement, especially from the intervals
-between multiple detected pulse waves, can the firmware calculate a heart rate
-in beats per minute. A single optical measurement point is not sufficient for
-this. The displayed BPM value is therefore an estimate calculated over a
-measurement window, not a directly measured instantaneous value.
+A heart-rate value calculated from PPG data is not a true instantaneous value.
+The ring firmware needs several optical samples before it can report a BPM value. 
+The displayed BPM value is therefore an estimate calculated over a measurement 
+window.
 
-In the observed COLMI live data, multiple values in a block have
-timestamps that advance in exact one-second steps. At the same time, the first timestamp 
-in such a block appears to be close to the moment when the green PPG LED ends its longer active 
-measurement phase and remains off for a noticeable pause. 
-OpenRing therefore treats the first timestamp of a block as
-the best available estimate for the end of the optical measurement window.
+In the observed live heart-rate data, values within one block use timestamps
+that increase in one-second steps.
+
+During testing, the first timestamp of such a block appeared to align with the
+end of the longer green PPG LED measurement phase. After this phase, the LED
+remained off for a noticeable pause.
+
+The history therefore uses the first timestamp of a block as the best available
+estimate for the end of the optical measurement window.
 
 The 4-second pause used between nearby display windows is based on the same
 observation. During testing, the ring's green PPG LED appeared to stay off for
-about 3 seconds between live measurement phases. OpenRing uses 4 seconds instead
+about 3 seconds between live measurement phases. The History uses 4 seconds instead
 as a small tolerance margin.
 
 This interpretation is an empirically motivated heuristic. The 
