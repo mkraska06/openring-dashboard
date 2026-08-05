@@ -59,7 +59,7 @@ Because the observed stock-firmware accelerometer stream is 1 Hz,
 OpenRing uses stable held hand positions instead of fast tap or swipe gestures.
 
 <p align="center">
-  <a href="https://github.com/user-attachments/assets/e8474290-65c5-4165-8ea3-03656fee0802">
+  <a href="./assets/Gesture.mp4">
     <img src="./assets/Gesture_Thumbnail.png" alt="Gesture Hub demo video" width="100%">
   </a>
 </p>
