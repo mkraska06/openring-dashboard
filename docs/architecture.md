@@ -19,7 +19,7 @@ features easier to explain, test and extend without mixing them.
 
 ## High-Level Flow
 
-![High-level flow diagram](high-level-flow.svg)
+![High-level flow diagram](../assets/high-level-flow.svg)
 
 At a high level, live data flows through the app like this:
 
