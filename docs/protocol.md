@@ -1,19 +1,18 @@
 # Colmi Protocol Notes
 
-This document describes the Colmi smart ring protocol behavior currently used
-by OpenRing Desktop.
+This document describes the Colmi smart ring protocol behavior.
 
 The implementation is based on observed ring behavior and on the Python
 `colmi_r02_client` reference implementation by tahnok:
 
 - https://github.com/tahnok/colmi_r02_client
 
-OpenRing has ported the currently needed packet builders and parsers to Dart in
-[lib/src/protocol/](../lib/src/protocol/). This document only covers the protocol surface that is
-implemented or intentionally considered by OpenRing today.
+The required packet builders and parsers were ported to Dart in
+[lib/src/protocol/](../lib/src/protocol/). This document only covers the
+protocol surface that is implemented.
 
-The Colmi protocol is not fully officially documented. Hardware revisions,
-firmware versions, and ring clones may behave differently.
+The Colmi protocol is not fully officially documented. Hardware revisions and
+firmware versions may behave differently.
 
 ## Transport
 
@@ -25,8 +24,8 @@ Colmi rings expose a Nordic UART-style BLE service.
 | Write characteristic | `6E400002-B5A3-F393-E0A9-E50E24DCCA9E` |
 | Notify characteristic | `6E400003-B5A3-F393-E0A9-E50E24DCCA9E` |
 
-OpenRing writes command packets to the write characteristic and receives
-response packets through notifications.
+Command packets are written to the write characteristic and response packets
+are received through notifications.
 
 The BLE transport code lives in [lib/src/ble/](../lib/src/ble/). Protocol
 packet construction and parsing live in [lib/src/protocol/](../lib/src/protocol/).
@@ -47,76 +46,31 @@ Checksum:
 checksum = sum(bytes 0..14) & 0xFF
 ```
 
-OpenRing validates this checksum before parsing received packets.
+Received packets are validated with this checksum before parsing.
 
-Implementation:
+Unused payload bytes are filled with `0x00` padding so that each packet keeps
+the fixed length of 16 bytes. The checksum is stored in the last byte and is
+used to detect malformed or incomplete packets before parsing.
 
-- [packet.dart](../lib/src/protocol/packet.dart)
-- `makePacket(command, subData)`
-- `validatePacket(data)`
-
-## Protocol State
-
-```plantuml
-@startuml OpenRing-Protocol-State
-title OpenRing Protocol - Packet and Measurement State
-
-[*] --> Idle
-
-Idle --> CommandBuilt : makePacket()
-CommandBuilt --> Sent : BleService.sendPacket()
-Sent --> WaitingForNotification : command expects response
-Sent --> Idle : fire-and-forget command
-
-WaitingForNotification --> PacketRejected : invalid length\nor checksum
-PacketRejected --> WaitingForNotification : ignore packet
-
-WaitingForNotification --> ParsedResponse : command byte matches parser
-WaitingForNotification --> WaitingForNotification : unrelated packet
-
-ParsedResponse --> Persisted : value/log data should be stored
-ParsedResponse --> Idle : no persistence needed
-Persisted --> Idle
-
-state "Real-Time Measurement" as RT {
-  [*] --> NotMeasuring
-  NotMeasuring --> Starting : 0x69 action=start
-  Starting --> Pending : value=0,error=0
-  Pending --> HasValue : value>0,error=0
-  Pending --> Failed : error!=0 or timeout
-  HasValue --> Cooldown : scheduler waits
-  Cooldown --> Starting : still desired
-  HasValue --> Stopping : 0x6A stop
-  Failed --> Stopping : best-effort stop
-  Stopping --> NotMeasuring
-}
-
-Idle --> RT : realtime command
-
-@enduml
-```
+Implementation: [packet.dart](../lib/src/protocol/packet.dart), especially
+`makePacket(command, subData)` and `validatePacket(data)`.
 
 ## Command Bytes
 
 The known command byte is stored in byte `0`.
 
-| Command | Hex | Direction | OpenRing support |
-| --- | ---: | --- | --- |
-| Set time | `0x01` | app -> ring | build |
-| Battery | `0x03` | app <-> ring | build + parse |
-| Reboot | `0x08` | app -> ring | build |
-| Blink twice | `0x10` | app -> ring | build |
-| Read heart-rate log | `0x15` | app <-> ring | build + stateful parse |
-| Heart-rate log settings | `0x16` | app <-> ring | build + parse |
-| Get steps/activity | `0x43` | app <-> ring | build + stateful parse |
-| Start real-time measurement | `0x69` | app <-> ring | build + parse |
-| Stop real-time measurement | `0x6A` | app -> ring | build |
-| Raw sensor / accelerometer | `0xA1` | app <-> ring | build + parse |
-
-Implementation:
-
-- [commands.dart](../lib/src/protocol/commands.dart)
-- [accelerometer.dart](../lib/src/protocol/accelerometer.dart)
+| Command byte | Purpose | Implementation |
+| ---: | --- | --- |
+| `0x01` | Set ring date and time | [set_time.dart](../lib/src/protocol/set_time.dart) |
+| `0x03` | Request battery level and charging state | [battery.dart](../lib/src/protocol/battery.dart) |
+| `0x08` | Reboot the ring | [utility.dart](../lib/src/protocol/utility.dart) |
+| `0x10` | Blink the ring LEDs twice | [utility.dart](../lib/src/protocol/utility.dart) |
+| `0x15` | Read stored heart-rate log entries | [hr_log.dart](../lib/src/protocol/hr_log.dart) |
+| `0x16` | Query or update heart-rate log settings | [hr_settings.dart](../lib/src/protocol/hr_settings.dart) |
+| `0x43` | Read step/activity log entries | [steps.dart](../lib/src/protocol/steps.dart) |
+| `0x69` | Start or continue a real-time measurement | [real_time.dart](../lib/src/protocol/real_time.dart) |
+| `0x6A` | Stop a real-time measurement | [real_time.dart](../lib/src/protocol/real_time.dart) |
+| `0xA1` | Enable, disable, or parse accelerometer streaming | [accelerometer.dart](../lib/src/protocol/accelerometer.dart) |
 
 ## BCD Encoding
 
@@ -130,11 +84,8 @@ Examples:
 | `12` | `0x12` |
 | `9` | `0x09` |
 
-Implementation:
-
-- [bcd.dart](../lib/src/protocol/bcd.dart)
-- `decToBcd`
-- `bcdToDec`
+Implementation: [bcd.dart](../lib/src/protocol/bcd.dart), especially
+`decToBcd` and `bcdToDec`.
 
 ## Set Time
 
@@ -157,10 +108,8 @@ Request layout:
 | `8..14` | zero padding |
 | `15` | checksum |
 
-Implementation:
-
-- [set_time.dart](../lib/src/protocol/set_time.dart)
-- `makeSetTimePacket`
+Implementation: [set_time.dart](../lib/src/protocol/set_time.dart), especially
+`makeSetTimePacket`.
 
 Current behavior: OpenRing converts the provided time to UTC before encoding,
 matching the Python reference behavior.
@@ -189,11 +138,8 @@ Response layout:
 | `3..14` | padding |
 | `15` | checksum |
 
-Implementation:
-
-- [battery.dart](../lib/src/protocol/battery.dart)
-- `makeBatteryRequest`
-- `parseBatteryResponse`
+Implementation: [battery.dart](../lib/src/protocol/battery.dart), especially
+`makeBatteryRequest` and `parseBatteryResponse`.
 
 ## Real-Time Measurements
 
@@ -257,13 +203,9 @@ Response layout:
 | `4..14` | padding |
 | `15` | checksum |
 
-Implementation:
-
-- [real_time.dart](../lib/src/protocol/real_time.dart)
-- `makeStartRealTimeRequest`
-- `makeContinueRealTimeRequest`
-- `makeStopRealTimeRequest`
-- `parseRealTimeResponse`
+Implementation: [real_time.dart](../lib/src/protocol/real_time.dart),
+especially `makeStartRealTimeRequest`, `makeContinueRealTimeRequest`,
+`makeStopRealTimeRequest`, and `parseRealTimeResponse`.
 
 Important behavior: real-time measurement should be treated as a shared sensor
 resource. The app should not assume HR, SpO2, and HRV can be measured reliably
@@ -324,11 +266,8 @@ Continuation packet:
 OpenRing skips zero values and reconstructs timestamps from the base timestamp
 plus `index * intervalMinutes`.
 
-Implementation:
-
-- [hr_log.dart](../lib/src/protocol/hr_log.dart)
-- `makeHrLogRequest`
-- `HrLogParser`
+Implementation: [hr_log.dart](../lib/src/protocol/hr_log.dart), especially
+`makeHrLogRequest` and `HrLogParser`.
 
 ## Heart-Rate Log Settings
 
@@ -368,12 +307,9 @@ Response layout:
 | `4..14` | padding |
 | `15` | checksum |
 
-Implementation:
-
-- [hr_settings.dart](../lib/src/protocol/hr_settings.dart)
-- `makeHrLogSettingsQuery`
-- `makeHrLogSettingsSet`
-- `parseHrLogSettings`
+Implementation: [hr_settings.dart](../lib/src/protocol/hr_settings.dart),
+especially `makeHrLogSettingsQuery`, `makeHrLogSettingsSet`, and
+`parseHrLogSettings`.
 
 ## Step and Activity Data
 
@@ -417,11 +353,8 @@ Data packet layout:
 | `13..14` | padding or unused |
 | `15` | checksum |
 
-Implementation:
-
-- [steps.dart](../lib/src/protocol/steps.dart)
-- `makeStepsRequest`
-- `StepParser`
+Implementation: [steps.dart](../lib/src/protocol/steps.dart), especially
+`makeStepsRequest` and `StepParser`.
 
 ## Accelerometer
 
@@ -463,12 +396,9 @@ Data response:
 | `8..14` | padding |
 | `15` | checksum |
 
-Implementation:
-
-- [accelerometer.dart](../lib/src/protocol/accelerometer.dart)
-- `makeAccelerometerStartRequest`
-- `makeAccelerometerStopRequest`
-- `parseAccelerometerResponse`
+Implementation: [accelerometer.dart](../lib/src/protocol/accelerometer.dart),
+especially `makeAccelerometerStartRequest`, `makeAccelerometerStopRequest`, and
+`parseAccelerometerResponse`.
 
 Observed behavior: stock firmware appears to stream at about 1 Hz. Custom
 firmware may support faster rates. Resting-ring packets observed during
@@ -483,10 +413,8 @@ Command: `0x10`
 OpenRing can send a no-payload command that makes the ring LEDs blink twice.
 This is useful for identifying the connected ring.
 
-Implementation:
-
-- [utility.dart](../lib/src/protocol/utility.dart)
-- `makeBlinkTwicePacket`
+Implementation: [utility.dart](../lib/src/protocol/utility.dart), especially
+`makeBlinkTwicePacket`.
 
 ### Reboot
 
@@ -503,41 +431,40 @@ Request layout:
 
 The ring disconnects after receiving this command.
 
-Implementation:
+Implementation: [utility.dart](../lib/src/protocol/utility.dart), especially
+`makeRebootPacket`.
 
-- [utility.dart](../lib/src/protocol/utility.dart)
-- `makeRebootPacket`
-
-## Testing
-
-Protocol behavior should be covered by focused unit tests.
-
-Existing tests live in [test/protocol/](../test/protocol/) and cover:
-
-- packet construction and checksum validation
-- battery request/response behavior
-- BCD conversion
-- real-time measurement packets and parsing
-- heart-rate log assembly
-- heart-rate settings
-- step/activity log assembly
-- accelerometer packets and signed 16-bit parsing
-
-Some tests use golden packets from the Python reference implementation to make
-sure Dart packet construction stays compatible.
-
-## Known Unknowns
+## Unverified Protocol Areas
 
 The following areas are intentionally not treated as stable protocol facts yet:
 
 - exact behavior across all Colmi ring models and firmware versions
-- unsupported real-time reading types such as blood pressure or blood sugar
-- sleep data formats
-- stress data formats
+- real-time reading types that are not supported by the current app, such as
+  blood pressure or blood sugar
+- sleep and stress data formats
 - full activity protocol variants
 - firmware update behavior
 - whether all timestamp fields should be interpreted as UTC or local time
 - edge cases for multi-packet log transmission and retries
 
-When adding support for new protocol areas, prefer small packet builders,
-small parsers, golden packet tests, and documentation updates in this file.
+## Testing
+
+Protocol behavior is covered by focused unit tests in
+[test/protocol/](../test/protocol/). The broader test strategy is documented in
+[testing.md](testing.md).
+
+Some tests compare generated Dart packets with known reference packets from the
+Python implementation.
+
+## Glossary
+
+| Term | Meaning |
+| --- | --- |
+| command byte | First byte of a packet; identifies which command or response type the packet belongs to. |
+| payload | Command-specific data inside the packet. |
+| reading type | Numeric identifier for a live vital measurement, such as heart rate, SpO2, or HRV. |
+| action | Numeric value that tells the ring what to do for a command, such as start or continue. |
+| metadata packet | Packet that describes following data packets instead of containing measurement values itself. |
+| continuation packet | Later packet in a multi-packet response. |
+| time index | Position of a 15-minute activity interval within one day. |
+
