@@ -1,7 +1,7 @@
 # Live Heart-Rate History Rendering
 
-This document describes how OpenRing currently handles timestamps for live
-heart-rate values from COLMI rings when rendering the History graph.
+This document describes how timestamps for live heart-rate values are handled
+when rendering the History graph.
 
 ## Background
 
@@ -9,79 +9,65 @@ The COLMI ring does not provide live heart-rate values as a continuous stream of
 independent point measurements. Instead, values arrive in blocks. The number of values 
 in each block varies.
 
-A heart-rate value calculated from PPG data is not a true instantaneous value.
-The ring firmware needs several optical samples before it can report a BPM value. 
-The displayed BPM value is therefore an estimate calculated over a measurement 
-window.
+Each reported timestamp has a corresponding BPM value. However, the BPM value is
+calculated from multiple PPG samples rather than from one single optical sample.
+The timestamp should therefore be understood as the reporting time of a computed
+heart-rate value, not as the exact time of one instantaneous sensor reading.
 
-In the observed live heart-rate data, values within one block use timestamps
-that increase in one-second steps.
+In the observed live heart-rate data, the timestamps inside one block increase
+by one second from value to value.
 
-During testing, the first timestamp of such a block appeared to align with the
-end of the longer green PPG LED measurement phase. After this phase, the LED
-remained off for a noticeable pause.
+To interpret these timestamps, the visible green PPG LED behavior was compared
+with the reported timestamp values. In the observed recordings, the time at
+which the LED turned off matched the first timestamp of the reported block.
 
-The history therefore uses the first timestamp of a block as the best available
-estimate for the end of the optical measurement window.
-
-The 4-second pause used between nearby display windows is based on the same
-observation. During testing, the ring's green PPG LED appeared to stay off for
-about 3 seconds between live measurement phases. The History uses 4 seconds instead
-as a small tolerance margin.
-
-This interpretation is an empirically motivated heuristic. The 
-COLMI live protocol is not fully documented, so other firmware or hardware
-variants may use different timestamp semantics. For example, a different ring
-variant could theoretically use the last timestamp of a block as the block end.
+The exact timestamp semantics of the COLMI live protocol are not officially
+documented. The History graph therefore uses an empirically motivated display heuristic.
 
 ## Display Timestamp Calculation
 
-For the History graph, OpenRing calculates separate display timestamps. The
-original timestamps stored in the database are not rewritten.
+For rendering, separate display timestamps are calculated without changing the
+stored timestamps.
 
-A live measurement block is detected when consecutive live values are no more
-than 6 seconds apart. For each detected block, the first timestamp in that block
-is used as the estimated end of the associated optical measurement window.
+For the graph, the previously described live heart-rate blocks are grouped into
+one display segment when their values are no more than 6 seconds apart. In the
+observed data, values from the same active measurement phase appeared close
+together, while a larger gap indicated that the ring had stopped that
+measurement phase and later started a new one.
 
-The values in the block are then distributed evenly across an estimated
-measurement window:
+The estimated measurement window ends at the first timestamp of the current
+display segment. The values in the segment are then distributed evenly between
+the calculated start and end time. This spreads them over the time range in
+which the optical measurement most likely took place.
 
-- If a previous live measurement block exists within 1 minute, the new
-  measurement window starts 4 seconds after the estimated end of the previous
-  block.
-- If there is no previous live measurement block within 1 minute, OpenRing uses
-  a fallback window of 30 seconds before the estimated end of the current block.
+- If a previous display segment exists within 1 minute, the current measurement
+  window starts 4 seconds after the estimated end of the previous segment.
+
+- If no previous display segment exists within 1 minute, the current measurement
+  window starts 30 seconds before the estimated end of the current segment.
 
 The calculated display timestamps are used only for graph rendering. They are
 estimates and must not be interpreted as exact sensor measurement times. Their
-purpose is to place processed heart-rate result values into a plausible section
-of the preceding PPG measurement window.
+purpose is to produce a more continuous and plausible History graph for
+blockwise live heart-rate data.
 
-This prevents a block of transmitted result values from appearing in the graph
-as several nearly simultaneous heart-rate events.
+The comparison below shows the same live heart-rate excerpt before and after
+the display timestamp calculation.
 
-Ring log data with its own historical timestamps is not adjusted.
+![Live heart-rate timestamp comparison](../assets/live-heart-rate-history-before-after.svg)
 
 ## Assumptions and Limits
 
-This timestamp reconstruction is based on empirical observations from the COLMI
-ring used during development and the observed green LED activity during live
-heart-rate measurement. Because there is no complete official technical
-documentation for the COLMI live protocol, this is not a verified description of
-the ring firmware internals.
+The timestamp adjustment is intentionally limited to graph rendering:
 
-The implementation is intentionally conservative:
-
-- Original timestamps remain unchanged in storage.
-- Estimated display timestamps are calculated separately.
-- The calculated timestamps are used only for visualization.
-- Ring log data with its own historical timestamps is not adjusted.
-- The method may produce different results for other firmware versions or
-  hardware variants.
-
-The goal is not to reconstruct exact physiological measurement times. The goal
-is to provide a more understandable and less misleading visualization of
-blockwise live heart-rate data.
+- Only live heart-rate values receive calculated display timestamps; stored
+  timestamps and ring log data remain unchanged
+- The calculated display timestamps are estimates, not exact sensor measurement
+  times.
+- The method was tested with the COLMI ring used during development; other
+  firmware versions or hardware variants may behave differently.
+- The goal is to provide a more understandable and less misleading visualization
+  of blockwise live heart-rate data.
 
 ## Implementation Reference
 
@@ -105,3 +91,9 @@ Relevant constants:
 
 The behavior is covered by focused tests in
 [test/storage/storage_repository_test.dart](../test/storage/storage_repository_test.dart).
+
+## AI Assistance Disclosure
+
+This document was checked and corrected with AI assistance to ensure that the
+live heart-rate history rendering description matches the existing project
+source code and observed local data. The content was reviewed by the author.
