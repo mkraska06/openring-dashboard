@@ -220,9 +220,3 @@ The detailed test layout, commands, and documentation rules are described in
 - [specs/use-case-diagram.puml](specs/use-case-diagram.puml)
 - [hardware-notes.md](hardware-notes.md)
 - [ai-assistance.md](ai-assistance.md)
-
-## AI Assistance Disclosure
-
-This document was checked and corrected with AI assistance to ensure that the
-architecture description matches the existing project source code. The content
-was reviewed by the author.

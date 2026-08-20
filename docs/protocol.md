@@ -467,4 +467,3 @@ Python implementation.
 | metadata packet | Packet that describes following data packets instead of containing measurement values itself. |
 | continuation packet | Later packet in a multi-packet response. |
 | time index | Position of a 15-minute activity interval within one day. |
-

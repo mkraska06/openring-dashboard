@@ -299,15 +299,3 @@ values should be requested through a scheduler in rotation, not in parallel.
 | Overlay | A small window shown above other applications |
 | System tray | Notification area of the taskbar on Windows or desktop environments |
 | PPG | Photoplethysmography, an optical measurement method for pulse and SpO2 |
-
----
-
-## AI Assistance Disclosure
-
-This document was revised with AI assistance. The assistance was limited to:
-
-- translating the original German requirements document into English
-- improving readability and academic wording
-- keeping the original requirement structure and requirement IDs unchanged
-
-The requirements, project scope, and prioritization were defined and reviewed by the project authors.

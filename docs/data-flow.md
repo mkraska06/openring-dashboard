@@ -144,9 +144,3 @@ Examples:
 | Sync ring time | controller -> [syncTime](../lib/src/ui/scan_page_controller.dart) -> set-time packet |
 | Blink ring | controller -> [blinkTwice](../lib/src/ui/scan_page_controller.dart) -> utility packet |
 | Reboot ring | controller -> [reboot](../lib/src/ui/scan_page_controller.dart) -> utility packet |
-
-## AI Assistance Disclosure
-
-This document was checked and corrected with AI assistance to ensure that the
-data-flow description matches the existing project source code. The content was
-reviewed by the author.

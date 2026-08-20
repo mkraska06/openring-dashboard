@@ -71,9 +71,3 @@ Overlay settings are stored as small local app preferences, using Flutter's
 
 The stored settings cover the overlay position, visible values, and the
 heart-rate/SpO2 warning thresholds.
-
-## AI Assistance Disclosure
-
-This document was checked and corrected with AI assistance to ensure that the
-overlay behavior description matches the existing project source code. The
-content was reviewed by the author.

@@ -134,10 +134,3 @@ Stores accelerometer samples for a Motion Lab recording session.
 | `acc_x` | integer | Accelerometer X-axis value |
 | `acc_y` | integer | Accelerometer Y-axis value |
 | `acc_z` | integer | Accelerometer Z-axis value |
-
-
-## AI Assistance Disclosure
-
-This document was checked and corrected with AI assistance to ensure that the
-database schema description matches the existing project source code. The
-content was reviewed by the author.

@@ -206,13 +206,3 @@ Test types:
    - optional save-location picker if a file-picker dependency is added later
 4. Keep hardware-dependent checks as manual acceptance tests until a reliable
    desktop integration test setup exists.
-
-## AI Assistance Disclosure
-
-This document was revised with AI assistance. The assistance was used to:
-
-- structure the mapping between requirements and test evidence
-- improve wording and consistency of coverage descriptions
-- update the recorded validation status after running the automated checks
-
-The coverage assessment and final status labels were reviewed by the project authors.

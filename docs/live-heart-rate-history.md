@@ -91,9 +91,3 @@ Relevant constants:
 
 The behavior is covered by focused tests in
 [test/storage/storage_repository_test.dart](../test/storage/storage_repository_test.dart).
-
-## AI Assistance Disclosure
-
-This document was checked and corrected with AI assistance to ensure that the
-live heart-rate history rendering description matches the existing project
-source code and observed local data. The content was reviewed by the author.
