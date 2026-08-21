@@ -218,5 +218,4 @@ The detailed test layout, commands, and documentation rules are described in
 - [testing.md](testing.md)
 - [specs/initial-requirements.md](specs/initial-requirements.md)
 - [specs/use-case-diagram.puml](specs/use-case-diagram.puml)
-- [hardware-notes.md](hardware-notes.md)
 - [ai-assistance.md](ai-assistance.md)
