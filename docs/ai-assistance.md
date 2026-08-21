@@ -1,13 +1,13 @@
 # AI Assistance Disclosure
 
 The documentation was written and revised by the author. AI assistance was used
-during documentation preparation as a translation, structuring, wording, and
+during documentation preparation as a translation, structuring, wording and
 review aid.
 
 AI was not used as an authoritative technical source. Technical claims are based
 on the project source code, automated tests, recorded measurements, observed ring
 behavior and cited references. The author wrote parts of the documentation
-directly, selected the relevant content, revised AI-assisted wording, and
+directly, selected the relevant content, revised AI-assisted wording and
 reviewed the final documents.
 
 ## Document-Level Overview
