@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1130" viewBox="0 0 1180 1130" role="img"><title>OpenRing - BLE Communication Classes</title>
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="open" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L10 6 L1 11" fill="none" stroke="black"/></marker><marker id="triangle" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M1 1 L14 7 L1 13 Z" fill="white" stroke="black"/></marker><marker id="diamond" markerWidth="16" markerHeight="12" refX="1" refY="6" orient="auto"><path d="M1 6 L7 1 L13 6 L7 11 Z" fill="black"/></marker></defs>
+<text x="30" y="49" font-family="Arial,sans-serif" font-size="25" font-weight="bold" text-anchor="start" fill="black">OpenRing - BLE Communication Classes</text>
+<rect x="40" y="155" width="340" height="236" fill="white" stroke="black"/>
+<path d="M40 191 H380" stroke="black"/>
+<path d="M40 291 H380" stroke="black"/>
+<text x="210.0" y="179" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">BleService</text>
+<text x="48" y="211" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ status : BleConnectionStatus</text>
+<text x="48" y="233" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ packetStream : Stream&lt;Uint8List&gt;</text>
+<text x="48" y="255" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ statusStream : Stream&lt;BleConnectionStatus&gt;</text>
+<text x="48" y="277" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ scanResults : Stream&lt;BleDevice&gt;</text>
+<text x="48" y="311" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ startScan()</text>
+<text x="48" y="333" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ connect(deviceId)</text>
+<text x="48" y="355" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ disconnect()</text>
+<text x="48" y="377" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ sendPacket(packet)</text>
+<rect x="40" y="540" width="340" height="156" fill="white" stroke="black"/>
+<path d="M40 596 H380" stroke="black"/>
+<path d="M40 696 H380" stroke="black"/>
+<text x="210.0" y="559" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="middle" fill="black">&lt;&lt;enumeration&gt;&gt;</text>
+<text x="210.0" y="584" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">BleConnectionStatus</text>
+<text x="48" y="616" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">disconnected</text>
+<text x="48" y="638" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">scanning</text>
+<text x="48" y="660" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">connecting</text>
+<text x="48" y="682" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">connected</text>
+<rect x="420" y="155" width="340" height="136" fill="white" stroke="black"/>
+<path d="M420 191 H760" stroke="black"/>
+<path d="M420 291 H760" stroke="black"/>
+<text x="590.0" y="179" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">RealTimeReading</text>
+<text x="428" y="211" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ type : int</text>
+<text x="428" y="233" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ value : int</text>
+<text x="428" y="255" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ errorCode : int</text>
+<text x="428" y="277" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ hasValue : bool</text>
+<rect x="800" y="155" width="340" height="114" fill="white" stroke="black"/>
+<path d="M800 191 H1140" stroke="black"/>
+<path d="M800 269 H1140" stroke="black"/>
+<text x="970.0" y="179" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">AccelerometerReading</text>
+<text x="808" y="211" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ accX : int</text>
+<text x="808" y="233" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ accY : int</text>
+<text x="808" y="255" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ accZ : int</text>
+<rect x="420" y="540" width="340" height="70" fill="white" stroke="black"/>
+<path d="M420 576 H760" stroke="black"/>
+<path d="M420 576 H760" stroke="black"/>
+<text x="590.0" y="564" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">HrLogParser</text>
+<text x="428" y="596" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ processPacket(data) : HrLogResult?</text>
+<rect x="800" y="540" width="340" height="92" fill="white" stroke="black"/>
+<path d="M800 576 H1140" stroke="black"/>
+<path d="M800 632 H1140" stroke="black"/>
+<text x="970.0" y="564" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">HrLogResult</text>
+<text x="808" y="596" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ intervalMinutes : int</text>
+<text x="808" y="618" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ entries : List&lt;HrLogEntry&gt;</text>
+<rect x="800" y="850" width="340" height="92" fill="white" stroke="black"/>
+<path d="M800 886 H1140" stroke="black"/>
+<path d="M800 942 H1140" stroke="black"/>
+<text x="970.0" y="874" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">HrLogEntry</text>
+<text x="808" y="906" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ time : DateTime</text>
+<text x="808" y="928" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ bpm : int</text>
+<rect x="420" y="850" width="340" height="104" fill="white" stroke="black"/>
+<path d="M420 886 H760" stroke="black"/>
+<path d="M420 920 H760" stroke="black"/>
+<text x="590.0" y="874" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">StepParser</text>
+<text x="428" y="906" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _entries : List&lt;StepEntry&gt;</text>
+<text x="428" y="940" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ processPacket(data) : List&lt;StepEntry&gt;?</text>
+<rect x="40" y="850" width="340" height="136" fill="white" stroke="black"/>
+<path d="M40 886 H380" stroke="black"/>
+<path d="M40 986 H380" stroke="black"/>
+<text x="210.0" y="874" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">StepEntry</text>
+<text x="48" y="906" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ time : DateTime</text>
+<text x="48" y="928" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ steps : int</text>
+<text x="48" y="950" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ calories : int</text>
+<text x="48" y="972" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ distanceMeters : int</text>
+<path d="M210.0,391 L210.0,465.5 L210.0,465.5 L210.0,540" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M760,575.0 L780.0,575.0 L780.0,586.0 L800,586.0" fill="none" stroke="black" stroke-width="1.2" stroke-dasharray="7 5" marker-end="url(#open)"/>
+<path d="M970.0,632 L970.0,741.0 L970.0,741.0 L970.0,850" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M420,902.0 L400.0,902.0 L400.0,918.0 L380,918.0" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+</svg>

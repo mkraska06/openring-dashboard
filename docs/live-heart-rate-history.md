@@ -54,7 +54,7 @@ blockwise live heart-rate data.
 The comparison below shows the same live heart-rate excerpt before and after
 the display timestamp calculation.
 
-![Live heart-rate timestamp comparison](../assets/live-heart-rate-history-before-after.svg)
+![Live heart-rate timestamp comparison](diagrams/live-heart-rate-history-before-after.svg)
 
 ## Assumptions and Limits
 

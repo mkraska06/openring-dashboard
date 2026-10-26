@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="650" viewBox="0 0 1120 650" role="img" aria-labelledby="title desc">
+<title id="title">OpenRing Desktop High-Level Flow</title>
+<desc id="desc">Incoming data flows from the Colmi Ring through BLE Communication to Dashboard, which shares state with Overlay and Gesture Hub and stores data through Data Management. User commands flow through Dashboard and BLE Communication to the ring.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#2b4f81"/></marker></defs>
+<style>text{font-family:Arial,sans-serif;fill:#172033}.title{font-size:24px;font-weight:bold}.heading{font-size:18px;font-weight:bold}.label{font-size:16px;font-weight:bold}.detail{font-size:12px;fill:#34506f}.edge{fill:none;stroke:#2b4f81;stroke-width:1.7;marker-end:url(#arrow)}</style>
+<rect width="1120" height="650" fill="white"/>
+<text class="title" x="35" y="40">OpenRing Desktop High-Level Flow</text>
+<text class="heading" x="35" y="85">Incoming Ring Data</text>
+<rect x="35" y="205" width="150" height="72" rx="9" fill="#fff3e0" stroke="#2b4f81"/>
+<text class="label" x="110.0" y="233" text-anchor="middle">Colmi Ring</text>
+<text class="detail" x="110.0" y="256" text-anchor="middle">BLE notifications</text>
+<rect x="235" y="205" width="225" height="72" rx="9" fill="#f5f9ff" stroke="#2b4f81"/>
+<text class="label" x="347.5" y="233" text-anchor="middle">BLE Communication</text>
+<text class="detail" x="347.5" y="256" text-anchor="middle">Transport and protocol processing</text>
+<rect x="510" y="205" width="180" height="72" rx="9" fill="#f5f9ff" stroke="#2b4f81"/>
+<text class="label" x="600.0" y="233" text-anchor="middle">Dashboard</text>
+<text class="detail" x="600.0" y="256" text-anchor="middle">Parse and coordinate live state</text>
+<rect x="825" y="110" width="250" height="72" rx="9" fill="#f5f9ff" stroke="#2b4f81"/>
+<text class="label" x="950.0" y="138" text-anchor="middle">Data Management</text>
+<text class="detail" x="950.0" y="161" text-anchor="middle">Storage, history and export</text>
+<rect x="825" y="205" width="250" height="72" rx="9" fill="#f5f9ff" stroke="#2b4f81"/>
+<text class="label" x="950.0" y="233" text-anchor="middle">Overlay</text>
+<text class="detail" x="950.0" y="256" text-anchor="middle">Display shared live state</text>
+<rect x="825" y="300" width="250" height="72" rx="9" fill="#f5f9ff" stroke="#2b4f81"/>
+<text class="label" x="950.0" y="328" text-anchor="middle">Gesture Hub</text>
+<text class="detail" x="950.0" y="351" text-anchor="middle">Consume accelerometer state</text>
+<path class="edge" d="M185 241 H235"/>
+<path class="edge" d="M460 241 H510"/>
+<path class="edge" d="M690 241 H750 V146 H825"/>
+<path class="edge" d="M690 241 H825"/>
+<path class="edge" d="M690 241 H750 V336 H825"/>
+<text class="detail" x="35" y="410">Branches are independent: live display and gesture processing do not wait for a database write.</text>
+<text class="heading" x="35" y="465">Outgoing Ring Commands</text>
+<rect x="35" y="495" width="150" height="72" rx="9" fill="#fff3e0" stroke="#2b4f81"/>
+<text class="label" x="110.0" y="523" text-anchor="middle">User</text>
+<text class="detail" x="110.0" y="546" text-anchor="middle">Dashboard actions</text>
+<rect x="235" y="495" width="225" height="72" rx="9" fill="#f5f9ff" stroke="#2b4f81"/>
+<text class="label" x="347.5" y="523" text-anchor="middle">Dashboard</text>
+<text class="detail" x="347.5" y="546" text-anchor="middle">Controller and use cases</text>
+<rect x="510" y="495" width="250" height="72" rx="9" fill="#f5f9ff" stroke="#2b4f81"/>
+<text class="label" x="635.0" y="523" text-anchor="middle">BLE Communication</text>
+<text class="detail" x="635.0" y="546" text-anchor="middle">Build and transmit command packets</text>
+<rect x="825" y="495" width="250" height="72" rx="9" fill="#fff3e0" stroke="#2b4f81"/>
+<text class="label" x="950.0" y="523" text-anchor="middle">Colmi Ring</text>
+<text class="detail" x="950.0" y="546" text-anchor="middle">Execute device command</text>
+<path class="edge" d="M185 531 H235"/>
+<path class="edge" d="M460 531 H510"/>
+<path class="edge" d="M760 531 H825"/>
+</svg>

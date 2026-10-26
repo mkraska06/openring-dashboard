@@ -5,10 +5,6 @@ provides a high-level map of the main modules, their
 responsibilities, and the data flow between the ring, protocol layer, storage,
 UI, overlay and Gesture Hub.
 
-The goal of the architecture is to keep hardware communication, protocol
-parsing, local storage and UI behavior separated. This makes the implemented
-features easier to explain, test and extend without mixing them.
-
 ## Architectural Goals
 
 - separate BLE transport, protocol parsing, local storage and UI behavior
@@ -17,205 +13,159 @@ features easier to explain, test and extend without mixing them.
 - keep the overlay integrated with the main app because the ring supports only
   one active BLE connection
 
+## OpenRing Decomposition
+
+![OpenRing decomposition into BLE Communication, Dashboard, Data Management, Overlay and Gesture Hub](diagrams/decomposition.png)
+
+The decomposition shows OpenRing as a system made up of five components:
+
+- **BLE Communication:** ring discovery, connection, packet transport and
+  protocol processing.
+- **Dashboard:** user interaction, live state, measurement control and Motion Lab.
+- **Data Management:** local storage, history and data export.
+- **Overlay:** compact live-data display and desktop window integration.
+- **Gesture Hub:** translation of held ring positions into desktop controls.
+
+## OpenRing Composition
+
+![OpenRing composition showing the five components, their ports and external partners](diagrams/composition.svg)
+
+[Editable draw.io source](diagrams/composition.drawio)
+
+The composition connects the five components through named ports. External
+partners are the Colmi Ring, the User, the Desktop Operating System and the
+Export File. Arrows inside the ports indicate flow direction; port labels
+describe logical interactions, not additional Dart classes.
+
 ## High-Level Flow
 
-![High-level flow diagram](../assets/high-level-flow.svg)
+![High-level flow diagram](diagrams/high-level-flow.svg)
 
-At a high level, live data flows through the app like this:
+BLE Communication delivers validated packets to Dashboard, which invokes the
+protocol parsers and updates shared state. Data Management receives persistence
+requests, while Overlay and Gesture Hub consume shared state through Riverpod.
+Displaying a live value does not wait for a database write.
 
-| Flow Step | Main Code Location |
+Ring commands travel from Dashboard through `ScanPageUseCases`, protocol command
+builders and `BleService` to the ring. The detailed packet, persistence and
+history paths are documented in [data-flow.md](data-flow.md).
+
+## Implementation Structure
+
+### Shared State and External Libraries
+
+Riverpod supplies shared dependencies and publishes controller state to widgets.
+The libraries below support the five application components.
+
+| External dependency | Responsibility in this application |
 | --- | --- |
-| Colmi ring sends BLE notification | ring hardware |
-| BLE notification is received and exposed as packet stream | [lib/src/ble/ble_service.dart](../lib/src/ble/ble_service.dart) |
-| Packet bytes are parsed into typed responses | [lib/src/protocol/](../lib/src/protocol/) |
-| Live state and measurement timing are coordinated | [lib/src/ui/scan_page_controller.dart](../lib/src/ui/scan_page_controller.dart), [lib/src/measurements/daily_measurement_cycle.dart](../lib/src/measurements/daily_measurement_cycle.dart) |
-| Values are stored or loaded for history | [lib/src/storage/storage_repository.dart](../lib/src/storage/storage_repository.dart), [lib/src/history/history_page_controller.dart](../lib/src/history/history_page_controller.dart) |
-| Values are rendered in dashboard, history, or overlay | [lib/src/ui/](../lib/src/ui/), [lib/src/history/](../lib/src/history/), [lib/src/overlay/](../lib/src/overlay/) |
+| Flutter, `flutter_riverpod` | Widgets, shared providers and reactive controller state |
+| `universal_ble` | Platform scanning, connection, GATT discovery, writes and notifications |
+| `drift`, `sqlite3_flutter_libs` | Typed database access and the native SQLite runtime |
+| `path_provider`, `path` | Local database location and export paths |
+| `window_manager` | Reconfigure the existing window for overlay mode |
+| `system_tray`, `hotkey_manager` | Tray commands and global overlay/Gesture Hub shortcuts |
+| `shared_preferences` | Persist overlay settings |
+| `fl_chart` | History and motion charts |
+| `file_selector` | Select an export destination |
+| `drift_db_viewer` | Inspect the local database during development |
 
-BLE notifications are received by `BleService`, parsed by the protocol layer,
-coordinated by the page controller and measurement-related components, then
-either stored locally or rendered in the dashboard, history view, or overlay.
+Dependencies are declared in [pubspec.yaml](../pubspec.yaml); resolved versions
+are recorded in [pubspec.lock](../pubspec.lock).
 
-Commands flow in the opposite direction:
+### Principal Classes and Dependencies
 
-| Flow Step | Main Code Location |
-| --- | --- |
-| User action starts in a widget callback | [lib/src/ui/scan_page.dart](../lib/src/ui/scan_page.dart), [lib/src/ui/scan_page_widgets.dart](../lib/src/ui/scan_page_widgets.dart) |
-| Page controller handles the action | [lib/src/ui/scan_page_controller.dart](../lib/src/ui/scan_page_controller.dart) |
-| UI-facing use case builds or sends the command | [lib/src/ui/scan_page_use_cases.dart](../lib/src/ui/scan_page_use_cases.dart) |
-| Protocol command packet is constructed | [lib/src/protocol/](../lib/src/protocol/) |
-| BLE service sends the packet to the ring | [lib/src/ble/ble_service.dart](../lib/src/ble/ble_service.dart) |
+![Principal classes grouped into the five OpenRing components](diagrams/classes.svg)
 
-Widget callbacks are routed through the controller and use-case layer before a
-protocol packet is sent through `BleService`.
+[Editable draw.io source (overview and five detail pages)](diagrams/classes.drawio)
 
-This separation keeps widgets focused on presentation and keeps protocol logic
-independent from Flutter UI code.
+The diagrams show selected classes and relationships relevant to the architecture.
 
-A more detailed breakdown of incoming data, persistence, history loading,
-overlay state, and outgoing commands is documented in
-[data-flow.md](data-flow.md).
+#### Dashboard Classes
 
-## BLE Layer
+![Dashboard classes](diagrams/classes-dashboard.svg)
 
-The BLE layer lives in [lib/src/ble/](../lib/src/ble/).
+`ScanPageNotifier` coordinates connection handling, live state and measurements.
+It delegates device commands to `ScanPageUseCases` and runs the daily measurement
+cycle using `DailyMeasurementCycleCursor`.
 
-`BleService` owns the low-level Bluetooth interaction:
+#### BLE Communication Classes
 
-- scanning for nearby devices
-- filtering likely Colmi rings by advertised name
-- connecting and disconnecting
-- discovering the Nordic UART Service used by the ring
-- subscribing to notification packets
-- sending validated command packets
-- exposing packet and connection-status streams
+![BLE Communication classes and parser/result relationships](diagrams/classes-ble-communication.svg)
 
-## Protocol Layer
+`BleService` provides validated packet bytes; `ScanPageNotifier` invokes the
+protocol parsers. The log parsers assemble `HrLogResult` and `StepEntry` objects,
+while top-level functions parse live and accelerometer readings. This is why
+there are no direct associations from `BleService` to those parsers or models.
 
-The protocol layer lives in [lib/src/protocol/](../lib/src/protocol/).
+#### Data Management Classes
 
-This layer contains deterministic packet builders and parsers for known Colmi
-commands and responses. 
+![Data Management controllers, states and storage classes](diagrams/classes-data-management.svg)
 
-Examples of protocol responsibilities:
+`DriftOpenRingStorage` implements the replaceable `OpenRingStorage` interface
+and accesses `AppDatabase`. History uses this interface, while export queries
+`AppDatabase` through its own `ExportRepository`.
 
-- packet checksum validation
-- command packet construction
-- battery response parsing
-- real-time reading parsing
-- heart-rate log parsing
-- heart-rate settings parsing
-- step/activity log parsing
-- accelerometer parsing
-- utility commands such as time sync, blink, and reboot
+#### Overlay Classes
 
-## UI Layer
+![Overlay widget, controller and settings classes](diagrams/classes-overlay.svg)
 
-The main dashboard UI lives in [lib/src/ui/](../lib/src/ui/).
+`OverlayWidget` reads live state and settings through Riverpod and delegates
+window actions to `OverlayController`. The overlay reuses the application
+window, providers and BLE connection.
 
-The current UI split is:
+#### Gesture Hub Classes
 
-- [scan_page.dart](../lib/src/ui/scan_page.dart) for page composition and navigation between dashboard,
-  Gesture Hub, history, export, and advanced controls
-- [scan_page_widgets.dart](../lib/src/ui/scan_page_widgets.dart) for reusable dashboard widgets and cards
-- [scan_page_controller.dart](../lib/src/ui/scan_page_controller.dart) for page state and orchestration
-- [scan_page_use_cases.dart](../lib/src/ui/scan_page_use_cases.dart) for UI-facing BLE command operations
+![Gesture Hub controller, state and system services](diagrams/classes-gesture-hub.svg)
 
-## Storage Layer
+`GestureHubController` translates accelerometer readings into volume, scroll
+and mouse actions. It controls the accelerometer through `ScanPageNotifier`;
+the listener in `_ConnectedSectionShell` forwards incoming samples to it.
 
-The storage layer lives in [lib/src/storage/](../lib/src/storage/).
+## Runtime Interaction and Failure Handling
 
-OpenRing currently uses Drift with SQLite. 
+### Connection and Incoming Data
 
-The database stores:
+![Connection setup and asynchronous battery response](diagrams/connection-sequence.svg)
 
-- known devices
-- app settings
-- vital samples
-- battery snapshots
-- activity intervals
-- motion recording sessions
-- motion samples
+[PlantUML source](diagrams/connection-sequence.puml)
 
-The storage repository maps parsed ring data into local models that can be used
-by history views, Motion Lab, Gesture Hub analysis, and data export.
+The sequence shows ring selection, connection, a battery request and the
+asynchronous response. `ScanPageNotifier` parses the validated packet, updates
+`ScanPageState` for display and starts an asynchronous database write.
+Connection and storage failures illustrate the error paths; a storage failure
+does not remove the already displayed battery value.
 
-## History Layer
+A completed BLE write does not guarantee a response, and this path has no
+dedicated battery-response timeout. Packets with invalid length or checksum are
+discarded before reaching the controller.
 
-The history layer lives in [lib/src/history/](../lib/src/history/).
+## Application States and Transitions
 
-It is responsible for loading local data and rendering historical views for:
+![Connection and presentation state regions](diagrams/app-states.svg)
 
-- heart rate
-- SpO2
-- HRV
-- activity intervals
+[PlantUML source](diagrams/app-states.puml)
 
-Chart calculation is kept separate from widgets where practical, so model-level
-behavior can be tested without launching the full UI.
+The diagram shows two independent state regions: BLE connection status and
+presentation mode, derived from `OverlaySettings.isActive` and `isInteractive`.
+A reconnect resets measurement state and does not automatically resume the daily
+cycle; measurement behavior is described in
+[measurement-scheduling.md](measurement-scheduling.md).
 
-Live heart-rate samples need special handling because the ring reports values in
-blocks rather than as a simple stream of independent point measurements. The
-current visualization heuristic is documented separately in:
+Presentation transitions assume successful window operations; failures can leave
+partially applied settings. Window behavior is detailed in [overlay.md](overlay.md).
 
-- [live-heart-rate-history.md](live-heart-rate-history.md)
+## Code and Detailed Documentation
 
-## Data Export
+The architecture views above explain the system structure and collaboration.
+Feature behavior, formats and validation details are maintained in the following
+documents.
 
-The data export feature lives in [lib/src/data_export/](../lib/src/data_export/).
-
-It reads selected local database tables through `ExportRepository`, converts the
-selected date range into export models, and formats the result as a user-facing
-file. It reads from local storage.
-
-## Overlay Architecture
-
-The overlay lives in [lib/src/overlay/](../lib/src/overlay/).
-
-OpenRing uses an integrated overlay mode instead of a separate app or second
-window pipeline. This is an important architectural choice because the ring
-supports only one active BLE connection.
-
-When overlay mode is active, the main app window is resized and reconfigured
-using `window_manager`. The overlay controller manages:
-
-- always-on-top behavior
-- skip-taskbar behavior
-- click-through mode
-- interactive positioning mode
-- opacity
-- tray menu integration
-- global hotkeys
-
-## Gesture Hub
-
-The Gesture Hub lives in [lib/src/gesture_hub/](../lib/src/gesture_hub/).
-
-It turns held accelerometer positions into coarse desktop controls:
-
-- scrolling
-- relative volume changes
-- mouse movement and left click
-
-The Gesture Hub deliberately avoids fast tap or swipe detection because the
-observed stock-firmware accelerometer stream is roughly `1 Hz`. Instead, it
-uses calibrated held positions from Motion Lab recordings. The detailed
-gesture data collection, control mapping and Windows input services
-are documented in:
-
-- [gesture-hub.md](gesture-hub.md)
-- [motion-research-lab.md](motion-research-lab.md)
-
-## Testing Strategy
-
-Current automated test areas include:
-
-- packet validation and parsing
-- command packet building
-- storage repository behavior
-- data export repository, formatter, controller, and widget behavior
-- history chart model calculations
-- live heart-rate timestamp reconstruction
-- daily measurement sequencing
-- UI controller behavior for scanning, connection, measurements, and
-  accelerometer stop handling
-- Motion Lab analysis and Gesture Hub control behavior
-- overlay widget behavior
-
-The detailed test layout, commands, and documentation rules are described in
-[testing.md](testing.md).
-
-## Related Documents
-
-- [README.md](../README.md)
-- [protocol.md](protocol.md)
-- [live-heart-rate-history.md](live-heart-rate-history.md)
-- [database-schema.md](database-schema.md)
-- [data-flow.md](data-flow.md)
-- [measurement-scheduling.md](measurement-scheduling.md)
-- [overlay.md](overlay.md)
-- [gesture-hub.md](gesture-hub.md)
-- [testing.md](testing.md)
-- [specs/initial-requirements.md](specs/initial-requirements.md)
-- [specs/use-case-diagram.puml](specs/use-case-diagram.puml)
-- [ai-assistance.md](ai-assistance.md)
+| Area | Main code | Detailed documentation |
+| --- | --- | --- |
+| BLE Communication | [ble/](../lib/src/ble/), [protocol/](../lib/src/protocol/) | [Protocol and packet formats](protocol.md) |
+| Dashboard | [ui/](../lib/src/ui/), [measurements/](../lib/src/measurements/) | [Data paths](data-flow.md), [measurement scheduling](measurement-scheduling.md) |
+| Data Management | [storage/](../lib/src/storage/), [history/](../lib/src/history/), [data_export/](../lib/src/data_export/) | [Database schema](database-schema.md), [history timestamp reconstruction](live-heart-rate-history.md), [history and storage flow](data-flow.md#history-flow) |
+| Overlay | [overlay/](../lib/src/overlay/) | [Window behavior, settings and hotkeys](overlay.md) |
+| Gesture Hub | [gesture_hub/](../lib/src/gesture_hub/) | [Gesture controls](gesture-hub.md), [Motion Lab and calibration](motion-research-lab.md) |
+| Validation | [test/](../test/) | [Test strategy and commands](testing.md), [requirements test matrix](specs/requirements-test-matrix.md) |

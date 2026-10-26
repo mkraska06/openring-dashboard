@@ -1,0 +1,30 @@
+@startuml
+title Application state - independent connection and presentation regions
+hide empty description
+state "Running application" as App {
+  state "BLE connection lifecycle" as Connection {
+    [*] --> Disconnected
+    Disconnected --> Scanning : startScan()
+    Scanning --> Disconnected : stopScan() / 10 s scan timeout
+    Disconnected --> Connecting : select device / saved-device auto-connect
+    Scanning --> Connecting : select device (scan stopped first)
+    Connecting --> Connected : service found and notifications ready
+    Connecting --> Disconnected : connect / discovery / subscribe failure
+    Connected --> Disconnected : manual disconnect / link loss / notification error
+    Disconnected --> Connecting : reconnect timer (default 5 s)\n[known device, not manual, still disconnected]
+  }
+  --
+  state "Presentation mode" as Presentation {
+    [*] --> FullWindow
+    state "Overlay" as Overlay {
+      state "Click-through" as ClickThrough
+      state "Interactive positioning" as Interactive
+      ClickThrough --> Interactive : toggleInteractive()
+      Interactive --> ClickThrough : toggleInteractive() / save position
+    }
+    FullWindow --> ClickThrough : activateOverlay() completes
+    Overlay --> FullWindow : deactivateOverlay() completes
+  }
+}
+[*] --> App : initialize Flutter, window manager, ProviderScope
+@enduml

@@ -21,10 +21,10 @@ The feature makes several quick system controls available through the same ring:
 It uses one central activation. After activation, the user can switch between
 controls by holding specific hand positions.
 
-![Gesture Hub card](../assets/gesture-hub-card.png)
+![Gesture Hub card](images/gesture-hub-card.png)
 
 A short demonstration video is available in
-[Gesture.mp4](../assets/Gesture.mp4).
+[Gesture Hub demo](media/gesture-demo.mp4).
 
 The current control logic uses these main positions:
 
@@ -84,7 +84,7 @@ leave the `palm_vertical` position and then return to it.
 Scrolling is step-based. Each detected `palm_up` or `palm_down` position sends
 one scroll step.
 
-![Gesture Hub scroll overlay](../assets/gesture-hub-scroll-overlay.png)
+![Gesture Hub scroll overlay](images/gesture-hub-scroll-overlay.png)
 
 | Hand position | Scroll action |
 | --- | --- |
@@ -96,7 +96,7 @@ one scroll step.
 
 Volume control changes the current system volume in small relative steps.
 
-![Gesture Hub volume overlay](../assets/gesture-hub-volume-overlay.png)
+![Gesture Hub volume overlay](images/gesture-hub-volume-overlay.png)
 
 | Hand position | Volume action |
 | --- | --- |
@@ -120,7 +120,7 @@ step becomes.
 Mouse control moves the cursor in steps. It uses one active movement axis at a
 time: vertical or horizontal. The default axis is vertical.
 
-![Gesture Hub mouse overlay](../assets/gesture-hub-mouse-overlay.png)
+![Gesture Hub mouse overlay](images/gesture-hub-mouse-overlay.png)
 
 | Hand position | Vertical axis | Horizontal axis |
 | --- | --- | --- |

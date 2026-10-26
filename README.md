@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="assets/banner.png" alt="OpenRing Desktop logo" width="900">
+  <img src="docs/images/banner.png" alt="OpenRing Desktop logo" width="900">
 </p>
 
 # OpenRing Desktop
 
 OpenRing Desktop is an experimental desktop app for Colmi-compatible smart rings. 
-It connects directly over Bluetooth Low Energy and provides local-first access
+It connects directly over Bluetooth Low Energy (BLE) and provides local-first access
 to live measurements, history, an always-on-top overlay and
 ring-based gesture controls. Currently tested with the Colmi R02 and R03. 
 Windows 11 is the primary tested desktop platform.
@@ -13,7 +13,7 @@ Windows 11 is the primary tested desktop platform.
 > The app is not a medical device. It is intended for personal tracking and experimentation only.
 
 <p align="center">
-  <img src="./assets/Dashboard_Overlay.png" alt="OpenRing dashboard and overlay" width="100%">
+  <img src="docs/images/dashboard-overlay.png" alt="OpenRing dashboard and overlay" width="100%">
 </p>
 
 ## Motivation
@@ -30,6 +30,24 @@ and experimental ring-based gesture controls.
 The reverse-engineered BLE packet structure is documented in
 [protocol.md](docs/protocol.md) and the overall application structure is
 summarized in [architecture.md](docs/architecture.md).
+
+## System Overview
+
+The user connects the ring, views vital and activity data, analyzes motion data
+and uses features such as the Gesture Hub, data export and the overlay. The
+Colmi Ring communicates with the application over BLE to
+provide measurements and receive device commands.
+
+![OpenRing Desktop use-case diagram showing the application boundary, User and Colmi Ring](docs/diagrams/use-case-diagram.png)
+
+## Requirements Specification
+
+The [requirements specification](./docs/specs/initial-requirements.md) defines
+the project's scope, functional requirements,
+priorities and technical constraints. It serves as the reference for the
+intended system behavior and includes both implemented features and open
+requirements. The current implementation and test status is documented in the
+[requirements test matrix](./docs/specs/requirements-test-matrix.md).
 
 ## What It Can Do
 
@@ -77,8 +95,8 @@ The accelerometer measurements behind the gesture centers are described in
 [motion-research-lab.md](docs/motion-research-lab.md).
 
 <p align="center">
-  <a href="./assets/Gesture.mp4">
-    <img src="./assets/Gesture_Thumbnail.png" alt="Gesture Hub demo video" width="100%">
+  <a href="docs/media/gesture-demo.mp4">
+    <img src="docs/images/gesture-thumbnail.png" alt="Gesture Hub demo video" width="100%">
   </a>
 </p>
 

@@ -1,0 +1,38 @@
+@startuml
+title Connect a ring and display its battery level
+hide footbox
+actor User
+participant ScanPageNotifier as Dashboard
+participant ScanPageUseCases as Commands
+participant BleService as BLE
+participant "Colmi Ring" as Ring
+participant OpenRingStorage as Storage
+
+User -> Dashboard : select ring: connect(deviceId)
+Dashboard -> Commands : connect(deviceId)
+Commands -> BLE : connect(deviceId)
+BLE -> Ring : establish BLE link and notifications
+
+alt connection fails
+  BLE --> Commands : exception; status = disconnected
+  Commands --> Dashboard : propagate exception
+  Dashboard -> Dashboard : set connection error for display
+else connection ready
+  BLE --> Commands : complete
+  Commands --> Dashboard : complete
+  Dashboard -> Commands : requestBattery()
+  Commands -> BLE : sendPacket(battery request)
+  BLE -> Ring : battery request
+  Ring ->> BLE : battery notification
+  BLE ->> Dashboard : validated packet via packetStream
+  Dashboard -> Dashboard : parseBatteryResponse(packet)
+  Dashboard -> Dashboard : update displayed battery in ScanPageState
+  Dashboard ->> Storage : insertBatterySnapshot(...) (unawaited)
+  alt database write succeeds
+    Storage -->> Dashboard : complete
+  else database write fails
+    Storage -->> Dashboard : exception
+    Dashboard -> Dashboard : set storage error for display
+  end
+end
+@enduml

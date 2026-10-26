@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1130" viewBox="0 0 1180 1130" role="img"><title>OpenRing - Dashboard Classes</title>
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="open" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L10 6 L1 11" fill="none" stroke="black"/></marker><marker id="triangle" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M1 1 L14 7 L1 13 Z" fill="white" stroke="black"/></marker><marker id="diamond" markerWidth="16" markerHeight="12" refX="1" refY="6" orient="auto"><path d="M1 6 L7 1 L13 6 L7 11 Z" fill="black"/></marker></defs>
+<text x="30" y="49" font-family="Arial,sans-serif" font-size="25" font-weight="bold" text-anchor="start" fill="black">OpenRing - Dashboard Classes</text>
+<rect x="420" y="155" width="340" height="236" fill="white" stroke="black"/>
+<path d="M420 191 H760" stroke="black"/>
+<path d="M420 269 H760" stroke="black"/>
+<text x="590.0" y="179" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">ScanPageNotifier</text>
+<text x="428" y="211" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _service : BleService</text>
+<text x="428" y="233" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _storage : OpenRingStorage</text>
+<text x="428" y="255" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _useCases : ScanPageUseCases</text>
+<text x="428" y="289" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ connect(deviceId)</text>
+<text x="428" y="311" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ disconnect()</text>
+<text x="428" y="333" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ toggleDailyMeasurement()</text>
+<text x="428" y="355" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ toggleAccelerometer()</text>
+<text x="428" y="377" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _onPacket(packet)</text>
+<rect x="40" y="540" width="340" height="158" fill="white" stroke="black"/>
+<path d="M40 576 H380" stroke="black"/>
+<path d="M40 698 H380" stroke="black"/>
+<text x="210.0" y="564" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">ScanPageState</text>
+<text x="48" y="596" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ realTimeReadings</text>
+<text x="48" y="618" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ runningMeasurements</text>
+<text x="48" y="640" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ dailyMeasurementRunning : bool</text>
+<text x="48" y="662" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ lastAccel : AccelerometerReading?</text>
+<text x="48" y="684" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ error : String?</text>
+<rect x="420" y="540" width="340" height="192" fill="white" stroke="black"/>
+<path d="M420 576 H760" stroke="black"/>
+<path d="M420 610 H760" stroke="black"/>
+<text x="590.0" y="564" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">ScanPageUseCases</text>
+<text x="428" y="596" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _service : BleService</text>
+<text x="428" y="630" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ connect(deviceId)</text>
+<text x="428" y="652" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ startRealTime(readingType)</text>
+<text x="428" y="674" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ stopRealTime(readingType)</text>
+<text x="428" y="696" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ startAccelerometer()</text>
+<text x="428" y="718" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ stopAccelerometer()</text>
+<rect x="800" y="540" width="340" height="126" fill="white" stroke="black"/>
+<path d="M800 576 H1140" stroke="black"/>
+<path d="M800 610 H1140" stroke="black"/>
+<text x="970.0" y="564" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">DailyMeasurementCycleCursor</text>
+<text x="808" y="596" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ current : int</text>
+<text x="808" y="630" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ advance()</text>
+<text x="808" y="652" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ reset()</text>
+<path d="M460,391 L460,450 L210,450 L210,540" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M590,391 L590,540" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)" marker-start="url(#diamond)"/>
+<path d="M720,391 L720,480 L970,480 L970,540" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)" marker-start="url(#diamond)"/>
+</svg>

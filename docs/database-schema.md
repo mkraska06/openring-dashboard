@@ -11,7 +11,7 @@ one ring without mixing their histories.
 
 
 
-![Database schema](../assets/database-schema.png)
+![Database schema](diagrams/database-schema.png)
 
 ## Tables
 

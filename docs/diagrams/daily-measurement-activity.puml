@@ -1,0 +1,40 @@
+@startuml
+title Daily measurement cycle in ScanPageNotifier
+start
+:toggleDailyMeasurement() starts cycle;
+:Stop currently running manual measurements;
+:Reset DailyMeasurementCycleCursor;
+:dailyMeasurementRunning = true;
+while (Cycle enabled?) is (yes)
+  :Read current type from cursor;
+  :ScanPageUseCases.startRealTime(type)\n-> BleService.sendPacket(...);
+  if (Start write succeeded?) then (yes)
+    :Set runningMeasurements = {type};
+    :Arm 45-second measurement timeout;
+    :Process asynchronous packets in _onPacket;
+    if (Valid value for active type received?) then (yes)
+      :Update displayed reading; persist asynchronously;
+      :Cancel measurement timeout;
+      :Rearm 2-second silence timer on each value;
+      :Wait for silence, ring error, stop or disconnect;
+    else (no)
+      :Wait for 45-second timeout,\nring error, stop or disconnect;
+    endif
+  else (no)
+    :Set start-failure message;
+  endif
+  if (User stopped cycle or link disconnected?) then (yes)
+    :Cancel timers; clear running measurement state;
+    note right
+      User stop sends stopRealTime best-effort.
+      Disconnect performs local cleanup.
+    end note
+    stop
+  else (no)
+    :_advanceDailyMeasurement(error: ...);\nreport timeout / ring / start error if applicable;
+    :Cancel timers; stopRealTime(type) best-effort;
+    :Advance cursor; clear runningMeasurements;
+  endif
+endwhile (no)
+stop
+@enduml

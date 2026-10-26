@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1250" viewBox="0 0 1180 1250" role="img"><title>OpenRing - Data Management Classes</title>
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="open" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L10 6 L1 11" fill="none" stroke="black"/></marker><marker id="triangle" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M1 1 L14 7 L1 13 Z" fill="white" stroke="black"/></marker><marker id="diamond" markerWidth="16" markerHeight="12" refX="1" refY="6" orient="auto"><path d="M1 6 L7 1 L13 6 L7 11 Z" fill="black"/></marker></defs>
+<text x="30" y="49" font-family="Arial,sans-serif" font-size="25" font-weight="bold" text-anchor="start" fill="black">OpenRing - Data Management Classes</text>
+<rect x="40" y="155" width="340" height="104" fill="white" stroke="black"/>
+<path d="M40 191 H380" stroke="black"/>
+<path d="M40 225 H380" stroke="black"/>
+<text x="210.0" y="179" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">DataExportNotifier</text>
+<text x="48" y="211" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _repository : ExportRepository</text>
+<text x="48" y="245" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ export(request)</text>
+<rect x="40" y="390" width="340" height="136" fill="white" stroke="black"/>
+<path d="M40 426 H380" stroke="black"/>
+<path d="M40 526 H380" stroke="black"/>
+<text x="210.0" y="414" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">DataExportState</text>
+<text x="48" y="446" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ isExporting : bool</text>
+<text x="48" y="468" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ lastFilePath : String?</text>
+<text x="48" y="490" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ lastRowCount : int?</text>
+<text x="48" y="512" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ error : String?</text>
+<rect x="40" y="700" width="340" height="104" fill="white" stroke="black"/>
+<path d="M40 736 H380" stroke="black"/>
+<path d="M40 770 H380" stroke="black"/>
+<text x="210.0" y="724" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">ExportRepository</text>
+<text x="48" y="756" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _db : AppDatabase</text>
+<text x="48" y="790" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ load(request) : Future&lt;ExportBundle&gt;</text>
+<rect x="800" y="155" width="340" height="148" fill="white" stroke="black"/>
+<path d="M800 191 H1140" stroke="black"/>
+<path d="M800 225 H1140" stroke="black"/>
+<text x="970.0" y="179" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">HistoryPageNotifier</text>
+<text x="808" y="211" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _storage : OpenRingStorage</text>
+<text x="808" y="245" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ load()</text>
+<text x="808" y="267" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ previousDay()</text>
+<text x="808" y="289" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ nextDay()</text>
+<rect x="800" y="500" width="340" height="136" fill="white" stroke="black"/>
+<path d="M800 536 H1140" stroke="black"/>
+<path d="M800 636 H1140" stroke="black"/>
+<text x="970.0" y="524" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">HistoryPageState</text>
+<text x="808" y="556" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ selectedDay : DateTime</text>
+<text x="808" y="578" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ isLoading : bool</text>
+<text x="808" y="600" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ historyDay : HistoryDay?</text>
+<text x="808" y="622" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ error : String?</text>
+<rect x="420" y="155" width="340" height="222" fill="white" stroke="black"/>
+<path d="M420 211 H760" stroke="black"/>
+<path d="M420 211 H760" stroke="black"/>
+<text x="590.0" y="174" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="middle" fill="black">&lt;&lt;interface&gt;&gt;</text>
+<text x="590.0" y="199" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">OpenRingStorage</text>
+<text x="428" y="231" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ getLastConnectedDeviceId()</text>
+<text x="428" y="253" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ setLastConnectedDevice(...)</text>
+<text x="428" y="275" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ insertVitalSample(...)</text>
+<text x="428" y="297" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ insertBatterySnapshot(...)</text>
+<text x="428" y="319" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ loadHistoryDay(...)</text>
+<text x="428" y="341" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ startMotionSession(...)</text>
+<text x="428" y="363" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ appendMotionSample(...)</text>
+<rect x="420" y="700" width="340" height="70" fill="white" stroke="black"/>
+<path d="M420 736 H760" stroke="black"/>
+<path d="M420 770 H760" stroke="black"/>
+<text x="590.0" y="724" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">DriftOpenRingStorage</text>
+<text x="428" y="756" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _db : AppDatabase</text>
+<rect x="420" y="1000" width="340" height="92" fill="white" stroke="black"/>
+<path d="M420 1036 H760" stroke="black"/>
+<path d="M420 1092 H760" stroke="black"/>
+<text x="590.0" y="1024" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">AppDatabase</text>
+<text x="428" y="1056" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ schemaVersion : int</text>
+<text x="428" y="1078" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ migration : MigrationStrategy</text>
+<path d="M590.0,700 L590.0,538.5 L590.0,538.5 L590.0,377" fill="none" stroke="black" stroke-width="1.2" stroke-dasharray="7 5" marker-end="url(#triangle)"/>
+<path d="M590.0,770 L590.0,885.0 L590.0,885.0 L590.0,1000" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M800,229.0 L780.0,229.0 L780.0,266.0 L760,266.0" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M210.0,804 L210.0,902.0 L590.0,902.0 L590.0,1000" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M210.0,259 L210.0,324.5 L210.0,324.5 L210.0,390" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M970.0,303 L970.0,401.5 L970.0,401.5 L970.0,500" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M40,207 L20,207 L20,752 L40,752" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+</svg>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1940" height="1160" viewBox="0 0 1940 1160" role="img"><title>OpenRing - Principal Classes and Dependencies</title>
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="open" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L10 6 L1 11" fill="none" stroke="black"/></marker><marker id="triangle" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M1 1 L14 7 L1 13 Z" fill="white" stroke="black"/></marker><marker id="diamond" markerWidth="16" markerHeight="12" refX="1" refY="6" orient="auto"><path d="M1 6 L7 1 L13 6 L7 11 Z" fill="black"/></marker></defs>
+<text x="30" y="49" font-family="Arial,sans-serif" font-size="25" font-weight="bold" text-anchor="start" fill="black">OpenRing - Principal Classes and Dependencies</text>
+<rect x="30" y="165" width="350" height="470" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="45" y="191" font-family="Arial,sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="black">BLE Communication</text>
+<rect x="480" y="165" width="680" height="470" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="495" y="191" font-family="Arial,sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="black">Dashboard</text>
+<rect x="1280" y="165" width="630" height="540" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1295" y="191" font-family="Arial,sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="black">Data Management</text>
+<rect x="480" y="830" width="680" height="230" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="495" y="856" font-family="Arial,sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="black">Overlay</text>
+<rect x="1280" y="830" width="630" height="230" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1295" y="856" font-family="Arial,sans-serif" font-size="18" font-weight="bold" text-anchor="start" fill="black">Gesture Hub</text>
+<rect x="60" y="205" width="290" height="92" fill="white" stroke="black"/>
+<path d="M60 241 H350" stroke="black"/>
+<path d="M60 241 H350" stroke="black"/>
+<text x="205.0" y="229" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">BleService</text>
+<text x="68" y="261" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ connect(deviceId)</text>
+<text x="68" y="283" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ sendPacket(packet)</text>
+<rect x="510" y="205" width="290" height="92" fill="white" stroke="black"/>
+<path d="M510 241 H800" stroke="black"/>
+<path d="M510 241 H800" stroke="black"/>
+<text x="655.0" y="229" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">ScanPageNotifier</text>
+<text x="518" y="261" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ connect(deviceId)</text>
+<text x="518" y="283" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ toggleDailyMeasurement()</text>
+<rect x="510" y="460" width="290" height="92" fill="white" stroke="black"/>
+<path d="M510 496 H800" stroke="black"/>
+<path d="M510 552 H800" stroke="black"/>
+<text x="655.0" y="484" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">ScanPageState</text>
+<text x="518" y="516" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ lastAccel : AccelerometerReading?</text>
+<text x="518" y="538" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ realTimeReadings</text>
+<rect x="840" y="205" width="290" height="70" fill="white" stroke="black"/>
+<path d="M840 241 H1130" stroke="black"/>
+<path d="M840 241 H1130" stroke="black"/>
+<text x="985.0" y="229" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">ScanPageUseCases</text>
+<text x="848" y="261" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ startRealTime(readingType)</text>
+<rect x="1310" y="205" width="290" height="112" fill="white" stroke="black"/>
+<path d="M1310 261 H1600" stroke="black"/>
+<path d="M1310 261 H1600" stroke="black"/>
+<text x="1455.0" y="224" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="middle" fill="black">&lt;&lt;interface&gt;&gt;</text>
+<text x="1455.0" y="249" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">OpenRingStorage</text>
+<text x="1318" y="281" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ insertVitalSample(...)</text>
+<text x="1318" y="303" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ loadHistoryDay(...)</text>
+<rect x="1310" y="505" width="290" height="70" fill="white" stroke="black"/>
+<path d="M1310 541 H1600" stroke="black"/>
+<path d="M1310 575 H1600" stroke="black"/>
+<text x="1455.0" y="529" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">DriftOpenRingStorage</text>
+<text x="1318" y="561" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">- _db : AppDatabase</text>
+<rect x="1640" y="505" width="250" height="70" fill="white" stroke="black"/>
+<path d="M1640 541 H1890" stroke="black"/>
+<path d="M1640 575 H1890" stroke="black"/>
+<text x="1765.0" y="529" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">AppDatabase</text>
+<text x="1648" y="561" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ schemaVersion : int</text>
+<rect x="510" y="880" width="290" height="70" fill="white" stroke="black"/>
+<path d="M510 916 H800" stroke="black"/>
+<path d="M510 916 H800" stroke="black"/>
+<text x="655.0" y="904" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">OverlayWidget</text>
+<text x="518" y="936" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ build(context, ref)</text>
+<rect x="840" y="880" width="290" height="70" fill="white" stroke="black"/>
+<path d="M840 916 H1130" stroke="black"/>
+<path d="M840 916 H1130" stroke="black"/>
+<text x="985.0" y="904" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">OverlayController</text>
+<text x="848" y="936" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ activateOverlay()</text>
+<rect x="1310" y="880" width="330" height="92" fill="white" stroke="black"/>
+<path d="M1310 916 H1640" stroke="black"/>
+<path d="M1310 916 H1640" stroke="black"/>
+<text x="1475.0" y="904" font-family="Arial,sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="black">GestureHubController</text>
+<text x="1318" y="936" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ activate()</text>
+<text x="1318" y="958" font-family="Arial,sans-serif" font-size="13" font-weight="normal" text-anchor="start" fill="black">+ onAccelerometerReading(reading)</text>
+<path d="M655.0,297 L655.0,378.5 L655.0,378.5 L655.0,460" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M510,251.0 L430.0,251.0 L430.0,251.0 L350,251.0" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M800,251.0 L820.0,251.0 L820.0,240.0 L840,240.0" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)" marker-start="url(#diamond)"/>
+<path d="M655,205 L655,150 L1455,150 L1455,205" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M985,205 L985,125 L205,125 L205,205" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M1455.0,505 L1455.0,411.0 L1455.0,411.0 L1455.0,317" fill="none" stroke="black" stroke-width="1.2" stroke-dasharray="7 5" marker-end="url(#triangle)"/>
+<path d="M1600,540.0 L1620.0,540.0 L1620.0,540.0 L1640,540.0" fill="none" stroke="black" stroke-width="1.2" marker-end="url(#open)"/>
+<path d="M655.0,880 L655.0,716.0 L655.0,716.0 L655.0,552" fill="none" stroke="black" stroke-width="1.2" stroke-dasharray="7 5" marker-end="url(#open)"/>
+<path d="M800,915.0 L820.0,915.0 L820.0,915.0 L840,915.0" fill="none" stroke="black" stroke-width="1.2" stroke-dasharray="7 5" marker-end="url(#open)"/>
+<path d="M1475,880 L1475,790 L1190,790 L1190,370 L780,370 L780,297" fill="none" stroke="black" stroke-width="1.2" stroke-dasharray="7 5" marker-end="url(#open)"/>
+</svg>

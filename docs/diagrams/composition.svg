@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1330" height="940" viewBox="-380 -70 1330 940" role="img"><title>OpenRing Composition</title><desc>Composition diagram supplied by the project author, showing five components, named ports and external interaction partners.</desc><rect x="-380" y="-70" width="1330" height="940" fill="white"/>
+<rect x="-370.0" y="-60.0" width="1310.0" height="920.0" fill="white" stroke="black" stroke-width="1"/>
+<rect x="-240.0" y="40.0" width="1030.0" height="760.0" fill="white" stroke="black" stroke-width="1"/>
+<rect x="-160.0" y="90.0" width="370.0" height="184.0" fill="white" stroke="black" stroke-width="1"/>
+<rect x="-160.0" y="620.0" width="370.0" height="132.0" fill="white" stroke="black" stroke-width="1"/>
+<rect x="-160.0" y="340.0" width="370.0" height="132.0" fill="white" stroke="black" stroke-width="1"/>
+<rect x="360.0" y="90.0" width="350.0" height="262.0" fill="white" stroke="black" stroke-width="1"/>
+<rect x="360.0" y="470.0" width="350.0" height="132.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M350.0,157.0 L310.0,157.0 L310.0,131.0 L220.0,131.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M220.0,157.0 L290.0,157.0 L290.0,183.0 L350.0,183.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M220.0,183.0 L270.0,183.0 L270.0,209.0 L350.0,209.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M220.0,209.0 L250.0,209.0 L250.0,235.0 L350.0,235.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M-230.0,248.0 L-200.0,248.0 L-200.0,235.0 L-170.0,235.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M-170.0,261.0 L-200.0,261.0 L-200.0,248.0 L-230.0,248.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M350.0,261.0 L245.0,261.0 L245.0,381.0 L220.0,381.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M220.0,407.0 L265.0,407.0 L265.0,287.0 L350.0,287.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M-170.0,459.0 L-230.0,459.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M720.0,313.0 L740.0,313.0 L740.0,511.0 L720.0,511.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M720.0,313.0 L740.0,313.0 L740.0,661.0 L220.0,661.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M350.0,563.0 L300.0,563.0 L300.0,339.0 L350.0,339.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M350.0,589.0 L350.0,590.0 L60.0,590.0 L-230.0,590.0 L-230.0,589.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M-170.0,713.0 L-200.0,713.0 L-200.0,589.0 L-230.0,589.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M-230.0,589.0 L-200.0,589.0 L-200.0,739.0 L-170.0,739.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M780.0,433.0 L760.0,433.0 L760.0,131.0 L720.0,131.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M780.0,433.0 L220.0,433.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M780.0,433.0 L325.0,433.0 L325.0,537.0 L350.0,537.0" fill="none" stroke="black" stroke-width="1"/>
+<path d="M780.0,433.0 L760.0,433.0 L760.0,687.0 L220.0,687.0" fill="none" stroke="black" stroke-width="1"/>
+<text x="25.0" y="104.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0" text-decoration="underline">: BLECommunication</text>
+<path d="M-160.0 114.0 H210.0" stroke="black" stroke-width="0.5"/>
+<text x="194.0" y="135.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Command-In : ConnectionAndDeviceCommands</text>
+<rect x="200.0" y="121.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 131.0 H217.0" fill="none" stroke="black"/>
+<path d="M208.0 127.0 L203.0 131.0 L208.0 135.0" fill="none" stroke="black"/>
+<text x="194.0" y="161.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Packet-Out : ValidatedPackets</text>
+<rect x="200.0" y="147.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 157.0 H217.0" fill="none" stroke="black"/>
+<path d="M212.0 153.0 L217.0 157.0 L212.0 161.0" fill="none" stroke="black"/>
+<text x="194.0" y="187.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Status-Out : BleConnectionStatus</text>
+<rect x="200.0" y="173.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 183.0 H217.0" fill="none" stroke="black"/>
+<path d="M212.0 179.0 L217.0 183.0 L212.0 187.0" fill="none" stroke="black"/>
+<text x="194.0" y="213.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Device-Out : DiscoveredDevices</text>
+<rect x="200.0" y="199.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 209.0 H217.0" fill="none" stroke="black"/>
+<path d="M212.0 205.0 L217.0 209.0 L212.0 213.0" fill="none" stroke="black"/>
+<text x="-144.0" y="239.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Ring-In : BLENotifications</text>
+<rect x="-170.0" y="225.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-167.0 235.0 H-153.0" fill="none" stroke="black"/>
+<path d="M-158.0 231.0 L-153.0 235.0 L-158.0 239.0" fill="none" stroke="black"/>
+<text x="-144.0" y="265.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Ring-Out : BLECommands</text>
+<rect x="-170.0" y="251.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-167.0 261.0 H-153.0" fill="none" stroke="black"/>
+<path d="M-162.0 257.0 L-167.0 261.0 L-162.0 265.0" fill="none" stroke="black"/>
+<text x="25.0" y="634.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0" text-decoration="underline">: Overlay</text>
+<path d="M-160.0 644.0 H210.0" stroke="black" stroke-width="0.5"/>
+<text x="194.0" y="665.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">LiveState-In : ScanPageState</text>
+<rect x="200.0" y="651.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 661.0 H217.0" fill="none" stroke="black"/>
+<path d="M208.0 657.0 L203.0 661.0 L208.0 665.0" fill="none" stroke="black"/>
+<text x="194.0" y="691.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Action-In : OverlayActions</text>
+<rect x="200.0" y="677.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 687.0 H217.0" fill="none" stroke="black"/>
+<path d="M208.0 683.0 L203.0 687.0 L208.0 691.0" fill="none" stroke="black"/>
+<text x="-144.0" y="717.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Window-Out : WindowAndTrayCommands</text>
+<rect x="-170.0" y="703.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-167.0 713.0 H-153.0" fill="none" stroke="black"/>
+<path d="M-162.0 709.0 L-167.0 713.0 L-162.0 717.0" fill="none" stroke="black"/>
+<text x="-144.0" y="743.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">System-In : HotkeyAndTrayEventsAndWindowResults</text>
+<rect x="-170.0" y="729.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-167.0 739.0 H-153.0" fill="none" stroke="black"/>
+<path d="M-158.0 735.0 L-153.0 739.0 L-158.0 743.0" fill="none" stroke="black"/>
+<text x="25.0" y="354.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0" text-decoration="underline">: DataManagement</text>
+<path d="M-160.0 364.0 H210.0" stroke="black" stroke-width="0.5"/>
+<text x="194.0" y="385.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Storage-In : StorageAndQueryRequests</text>
+<rect x="200.0" y="371.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 381.0 H217.0" fill="none" stroke="black"/>
+<path d="M208.0 377.0 L203.0 381.0 L208.0 385.0" fill="none" stroke="black"/>
+<text x="194.0" y="411.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Storage-Out : StoredDataAndResults</text>
+<rect x="200.0" y="397.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 407.0 H217.0" fill="none" stroke="black"/>
+<path d="M212.0 403.0 L217.0 407.0 L212.0 411.0" fill="none" stroke="black"/>
+<text x="194.0" y="437.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Action-In : HistoryAndExportActions</text>
+<rect x="200.0" y="423.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M203.0 433.0 H217.0" fill="none" stroke="black"/>
+<path d="M208.0 429.0 L203.0 433.0 L208.0 437.0" fill="none" stroke="black"/>
+<text x="-144.0" y="463.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">File-Out : CSVOrJSONFile</text>
+<rect x="-170.0" y="449.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-167.0 459.0 H-153.0" fill="none" stroke="black"/>
+<path d="M-162.0 455.0 L-167.0 459.0 L-162.0 463.0" fill="none" stroke="black"/>
+<text x="535.0" y="104.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0" text-decoration="underline">: Dashboard</text>
+<path d="M360.0 114.0 H710.0" stroke="black" stroke-width="0.5"/>
+<text x="694.0" y="135.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">Action-In : UserActions</text>
+<rect x="700.0" y="121.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M703.0 131.0 H717.0" fill="none" stroke="black"/>
+<path d="M708.0 127.0 L703.0 131.0 L708.0 135.0" fill="none" stroke="black"/>
+<text x="376.0" y="161.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Command-Out : ConnectionAndDeviceCommands</text>
+<rect x="350.0" y="147.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 157.0 H367.0" fill="none" stroke="black"/>
+<path d="M358.0 153.0 L353.0 157.0 L358.0 161.0" fill="none" stroke="black"/>
+<text x="376.0" y="187.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Packet-In : ValidatedPackets</text>
+<rect x="350.0" y="173.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 183.0 H367.0" fill="none" stroke="black"/>
+<path d="M362.0 179.0 L367.0 183.0 L362.0 187.0" fill="none" stroke="black"/>
+<text x="376.0" y="213.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Status-In : BleConnectionStatus</text>
+<rect x="350.0" y="199.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 209.0 H367.0" fill="none" stroke="black"/>
+<path d="M362.0 205.0 L367.0 209.0 L362.0 213.0" fill="none" stroke="black"/>
+<text x="376.0" y="239.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Device-In : DiscoveredDevices</text>
+<rect x="350.0" y="225.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 235.0 H367.0" fill="none" stroke="black"/>
+<path d="M362.0 231.0 L367.0 235.0 L362.0 239.0" fill="none" stroke="black"/>
+<text x="376.0" y="265.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Storage-Out : StorageAndQueryRequests</text>
+<rect x="350.0" y="251.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 261.0 H367.0" fill="none" stroke="black"/>
+<path d="M358.0 257.0 L353.0 261.0 L358.0 265.0" fill="none" stroke="black"/>
+<text x="376.0" y="291.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Storage-In : StoredDataAndResults</text>
+<rect x="350.0" y="277.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 287.0 H367.0" fill="none" stroke="black"/>
+<path d="M362.0 283.0 L367.0 287.0 L362.0 291.0" fill="none" stroke="black"/>
+<text x="694.0" y="317.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">LiveState-Out : ScanPageState</text>
+<rect x="700.0" y="303.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M703.0 313.0 H717.0" fill="none" stroke="black"/>
+<path d="M712.0 309.0 L717.0 313.0 L712.0 317.0" fill="none" stroke="black"/>
+<text x="376.0" y="343.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">GestureCommand-In : AccelerometerControl</text>
+<rect x="350.0" y="329.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 339.0 H367.0" fill="none" stroke="black"/>
+<path d="M362.0 335.0 L367.0 339.0 L362.0 343.0" fill="none" stroke="black"/>
+<text x="535.0" y="484.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0" text-decoration="underline">: GestureHub</text>
+<path d="M360.0 494.0 H710.0" stroke="black" stroke-width="0.5"/>
+<text x="694.0" y="515.2" text-anchor="end" font-family="Courier New,sans-serif" font-size="12.0">LiveState-In : ScanPageState</text>
+<rect x="700.0" y="501.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M703.0 511.0 H717.0" fill="none" stroke="black"/>
+<path d="M708.0 507.0 L703.0 511.0 L708.0 515.0" fill="none" stroke="black"/>
+<text x="376.0" y="541.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Action-In : GestureHubActions</text>
+<rect x="350.0" y="527.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 537.0 H367.0" fill="none" stroke="black"/>
+<path d="M362.0 533.0 L367.0 537.0 L362.0 541.0" fill="none" stroke="black"/>
+<text x="376.0" y="567.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">GestureCommand-Out : AccelerometerControl</text>
+<rect x="350.0" y="553.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 563.0 H367.0" fill="none" stroke="black"/>
+<path d="M358.0 559.0 L353.0 563.0 L358.0 567.0" fill="none" stroke="black"/>
+<text x="376.0" y="593.2" text-anchor="start" font-family="Courier New,sans-serif" font-size="12.0">Desktop-Out : VolumeScrollAndMouseCommands</text>
+<rect x="350.0" y="579.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M353.0 589.0 H367.0" fill="none" stroke="black"/>
+<path d="M358.0 585.0 L353.0 589.0 L358.0 593.0" fill="none" stroke="black"/>
+<rect x="-250.0" y="449.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-247.0 459.0 H-233.0" fill="none" stroke="black"/>
+<path d="M-242.0 455.0 L-247.0 459.0 L-242.0 463.0" fill="none" stroke="black"/>
+<text x="-295.0" y="252.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0">Colmi Ring</text>
+<text x="-295.0" y="463.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0">Export File</text>
+<text x="845.0" y="437.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0">User</text>
+<text x="-300.0" y="578.8000000000001" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0">Desktop</text>
+<text x="-300.0" y="593.2" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0">Operating</text>
+<text x="-300.0" y="607.6" text-anchor="middle" font-family="Arial,sans-serif" font-size="12.0">System</text>
+<rect x="-250.0" y="238.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-247.0 248.0 H-233.0" fill="none" stroke="black"/>
+<path d="M-238.0 244.0 L-233.0 248.0 L-238.0 252.0" fill="none" stroke="black"/>
+<path d="M-242.0 244.0 L-247.0 248.0 L-242.0 252.0" fill="none" stroke="black"/>
+<rect x="780.0" y="423.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M783.0 433.0 H797.0" fill="none" stroke="black"/>
+<path d="M788.0 429.0 L783.0 433.0 L788.0 437.0" fill="none" stroke="black"/>
+<rect x="-250.0" y="579.0" width="20.0" height="20.0" fill="white" stroke="black" stroke-width="1"/>
+<path d="M-247.0 589.0 H-233.0" fill="none" stroke="black"/>
+<path d="M-238.0 585.0 L-233.0 589.0 L-238.0 593.0" fill="none" stroke="black"/>
+<path d="M-242.0 585.0 L-247.0 589.0 L-242.0 593.0" fill="none" stroke="black"/>
+</svg>
