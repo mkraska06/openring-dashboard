@@ -35,7 +35,7 @@ The decomposition shows OpenRing as a system made up of five components:
 The composition connects the five components through named ports. External
 partners are the Colmi Ring, the User, the Desktop Operating System and the
 Export File. Arrows inside the ports indicate flow direction; port labels
-describe logical interactions, not additional Dart classes.
+describe logical interactions.
 
 ## High-Level Flow
 
@@ -79,7 +79,6 @@ are recorded in [pubspec.lock](../pubspec.lock).
 
 [Editable draw.io source (overview and five detail pages)](diagrams/classes.drawio)
 
-The diagrams show selected classes and relationships relevant to the architecture.
 
 #### Dashboard Classes
 
