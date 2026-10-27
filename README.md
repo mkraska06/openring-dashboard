@@ -38,7 +38,11 @@ and uses features such as the Gesture Hub, data export and the overlay. The
 Colmi Ring communicates with the application over BLE to
 provide measurements and receive device commands.
 
-![OpenRing Desktop use-case diagram showing the application boundary, User and Colmi Ring](docs/diagrams/use-case-diagram.png)
+<p align="center">
+  <a href="docs/diagrams/use-case-diagram.png">
+    <img src="docs/diagrams/use-case-diagram.png" alt="OpenRing Desktop use-case diagram showing the application boundary, User and Colmi Ring" width="400">
+  </a>
+</p>
 
 ## Requirements Specification
 
